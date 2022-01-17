@@ -73,13 +73,38 @@ class BaseModel(pl.LightningModule):
         self.num_workers = hypparams['num_workers']
         self.fold = hypparams['fold']
         self.dims = hypparams['dims']
+
+        baseline_val_MSE = MeanSquaredError()
+        baseline_val_MAE = MeanAbsoluteError()
         if self.dims == 1:
             self.train_mean, self.train_std = PerovskiteDataset1d(data_dir=self.data_dir, transform=None, fold=self.fold,
                                                                   split='train', label='PCE_mean').get_stats()
+
+            label_mean = PerovskiteDataset1d(data_dir=self.data_dir, transform=None, fold=self.fold,
+                                                                  split='train', label='PCE_mean').get_label_mean()
+
+            val_labels = PerovskiteDataset1d(data_dir=self.data_dir, transform=None, fold=self.fold, split='train',
+                                             label='PCE_mean', val=True).get_all_labels()
+
+            self.baseline_val_MSE = baseline_val_MSE(torch.from_numpy(np.array(len(val_labels) * [label_mean])),
+                                                     torch.from_numpy(val_labels))
+            self.baseline_val_MAE = baseline_val_MAE(torch.from_numpy(np.array(len(val_labels) * [label_mean])),
+                                                     torch.from_numpy(val_labels))
+
         elif self.dims == 2:
             self.train_mean, self.train_std = PerovskiteDataset2d(data_dir=self.data_dir, transform=None,
                                                                   fold=self.fold,
                                                                   split='train', label='PCE_mean').get_stats()
+            label_mean = PerovskiteDataset2d(data_dir=self.data_dir, transform=None, fold=self.fold,
+                                             split='train', label='PCE_mean').get_label_mean()
+
+            val_labels = PerovskiteDataset2d(data_dir=self.data_dir, transform=None, fold=self.fold, split='train',
+                                             label='PCE_mean', val=True).get_all_labels()
+
+            self.baseline_val_MSE = baseline_val_MSE(torch.from_numpy(np.array(len(val_labels) * [label_mean])),
+                                                     torch.from_numpy(val_labels))
+            self.baseline_val_MAE = baseline_val_MAE(torch.from_numpy(np.array(len(val_labels) * [label_mean])),
+                                                     torch.from_numpy(val_labels))
 
         os.makedirs(self.data_dir, exist_ok=True)
         self.download = False if any(os.scandir(self.data_dir)) else True
@@ -161,6 +186,10 @@ class BaseModel(pl.LightningModule):
         self.log('val_MAE', self.val_MAE, on_step=False, on_epoch=True, prog_bar=True)
 
     def on_train_start(self):
+
+        # log baseline
+        self.log('baseline_val_MSE', self.baseline_val_MSE)
+        self.log('baseline_val_MAE', self.baseline_val_MAE)
 
         from models.resnet import BasicBlock, Bottleneck
         #from models.wide_resnet import BasicBlock as Wide_BasicBlock, Bottleneck as Wide_Bottleneck

@@ -11,6 +11,7 @@ class PerovskiteDataset1d(Dataset):
 
         self.transform = transform
         self.split = split
+        self.val = val
 
         if val:
             assert split == 'train'
@@ -64,8 +65,20 @@ class PerovskiteDataset1d(Dataset):
     def get_stats(self):
 
         assert self.split == 'train'
+        assert not self.val
 
         return self.videos.mean(dim=(0, 2)), self.videos.std(dim=(0, 2))
+
+    def get_label_mean(self):
+
+        assert self.split == 'train'
+        assert not self.val
+
+        return np.mean(self.labels)
+
+    def get_all_labels(self):
+
+        return self.labels
 
 
 class PerovskiteDataset2d(Dataset):
@@ -74,6 +87,7 @@ class PerovskiteDataset2d(Dataset):
 
         self.transform = transform
         self.split = split
+        self.val = val
 
         if val:
             assert split == 'train'
@@ -129,6 +143,17 @@ class PerovskiteDataset2d(Dataset):
     def get_stats(self):
 
         assert self.split == 'train'
+        assert not self.val
 
         return self.videos.mean(axis=(0, 1, 2)), self.videos.std(axis=(0, 1, 2))
 
+    def get_label_mean(self):
+
+        assert self.split == 'train'
+        assert not self.val
+
+        return np.mean(self.labels)
+
+    def get_all_labels(self):
+
+        return self.labels

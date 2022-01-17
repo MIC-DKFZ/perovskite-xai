@@ -164,10 +164,14 @@ if __name__ == '__main__':
         val_MSE = mlflow.get_run(run.info.run_id).data.metrics['val_MSE']
         train_MAE = mlflow.get_run(run.info.run_id).data.metrics['train_MAE']
         val_MAE = mlflow.get_run(run.info.run_id).data.metrics['val_MAE']
-        validation_metrics.append((run.info.run_id, (train_MSE, val_MSE, train_MAE, val_MAE)))
+        baseline_val_MSE = mlflow.get_run(run.info.run_id).data.metrics['baseline_val_MSE']
+        baseline_val_MAE = mlflow.get_run(run.info.run_id).data.metrics['baseline_val_MAE']
+        validation_metrics.append(
+            (run.info.run_id, (train_MSE, val_MSE, train_MAE, val_MAE, baseline_val_MSE, baseline_val_MAE)))
 
     ids, scores = zip(*validation_metrics)
-    avg_train_MSE, avg_val_MSE, avg_train_MAE, avg_val_MAE = np.mean(scores, axis=0)
+    avg_train_MSE, avg_val_MSE, avg_train_MAE, avg_val_MAE, avg_baseline_val_MSE, avg_baseline_val_MAE = np.mean(scores,
+                                                                                                                 axis=0)
 
     for run_id in ids:
         client = MlflowClient()
@@ -175,3 +179,5 @@ if __name__ == '__main__':
         client.log_metric(run_id=run_id, key='CV_avg_val_MSE', value=avg_val_MSE)
         client.log_metric(run_id=run_id, key='CV_avg_train_MAE', value=avg_train_MAE)
         client.log_metric(run_id=run_id, key='CV_avg_val_MAE', value=avg_val_MAE)
+        client.log_metric(run_id=run_id, key='CV_baseline_avg_val_MSE', value=avg_baseline_val_MSE)
+        client.log_metric(run_id=run_id, key='CV_baseline_avg_val_MAE', value=avg_baseline_val_MAE)
