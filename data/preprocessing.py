@@ -11,15 +11,15 @@ def preprocess(rootPath):
     :param rootPath: Path containing the data
     '''
 
-    labels = pd.DataFrame(columns=['substrateName', 'patch_loc', 'maxPL', 'PCE_forward', 'PCE_backward', 'PCE_mean',
-                                   'FF_forward', 'FF_backward', 'FF_mean'])
-
     base = os.path.join(rootPath, 'preprocessed')
     os.makedirs(base, exist_ok=True)
 
     for split in ['train', 'test']:
 
         print('Preprocessing {} data'.format(split))
+
+        labels = pd.DataFrame(columns=['substrateName', 'patch_loc', 'maxPL', 'PCE_forward', 'PCE_backward', 'PCE_mean',
+                                       'FF_forward', 'FF_backward', 'FF_mean'])
 
         split_dir = os.path.join(base, split)
         os.makedirs(split_dir, exist_ok=True)
