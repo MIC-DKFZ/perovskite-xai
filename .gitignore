@@ -3,3 +3,4 @@ cluster_jobs.txt
 .idea
 __pycache__
 .git
+.ipynb_checkpoints

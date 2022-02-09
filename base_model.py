@@ -115,7 +115,7 @@ class BaseModel(pl.LightningModule):
 
         # Loss
         #self.criterion = nn.CrossEntropyLoss()#weight=class_weights)
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.L1Loss()#nn.MSELoss()
 
         # Inference
         self.softmax = nn.Softmax(dim=1)
