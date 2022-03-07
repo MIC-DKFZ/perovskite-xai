@@ -27,6 +27,13 @@ class BasicBlock(nn.Module):
             self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
                                    stride=1, padding=1, bias=False)
             self.bn2 = nn.BatchNorm2d(planes)
+        elif dims == 3:
+            self.conv1 = nn.Conv3d(
+                in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+            self.bn1 = nn.BatchNorm3d(planes)
+            self.conv2 = nn.Conv3d(planes, planes, kernel_size=3,
+                                   stride=1, padding=1, bias=False)
+            self.bn2 = nn.BatchNorm3d(planes)
 
         # Stochastic Depth
         self.drop_path = DropPath(drop_prob=stochastic_depth)
@@ -50,6 +57,12 @@ class BasicBlock(nn.Module):
                     nn.Conv2d(in_planes, self.expansion*planes,
                               kernel_size=1, stride=stride, bias=False),
                     nn.BatchNorm2d(self.expansion*planes)
+                )
+            elif dims == 3:
+                self.shortcut = nn.Sequential(
+                    nn.Conv3d(in_planes, self.expansion*planes,
+                              kernel_size=1, stride=stride, bias=False),
+                    nn.BatchNorm3d(self.expansion*planes)
                 )
 
     def forward(self, x):
@@ -92,6 +105,15 @@ class Bottleneck(nn.Module):
             self.conv3 = nn.Conv2d(planes, self.expansion *
                                    planes, kernel_size=1, bias=False)
             self.bn3 = nn.BatchNorm2d(self.expansion*planes)
+        elif dims == 3:
+            self.conv1 = nn.Conv3d(in_planes, planes, kernel_size=1, bias=False)
+            self.bn1 = nn.BatchNorm3d(planes)
+            self.conv2 = nn.Conv3d(planes, planes, kernel_size=3,
+                                   stride=stride, padding=1, bias=False)
+            self.bn2 = nn.BatchNorm3d(planes)
+            self.conv3 = nn.Conv3d(planes, self.expansion *
+                                   planes, kernel_size=1, bias=False)
+            self.bn3 = nn.BatchNorm3d(self.expansion*planes)
 
         # Stochastic Depth
         self.drop_path = DropPath(drop_prob=stochastic_depth)
@@ -115,6 +137,12 @@ class Bottleneck(nn.Module):
                     nn.Conv2d(in_planes, self.expansion*planes,
                               kernel_size=1, stride=stride, bias=False),
                     nn.BatchNorm2d(self.expansion*planes)
+                )
+            elif dims == 3:
+                self.shortcut = nn.Sequential(
+                    nn.Conv3d(in_planes, self.expansion*planes,
+                              kernel_size=1, stride=stride, bias=False),
+                    nn.BatchNorm3d(self.expansion*planes)
                 )
 
     def forward(self, x):
@@ -162,6 +190,11 @@ class ResNet(BaseModel):
                                    stride=1, padding=1, bias=False)
             self.bn1 = nn.BatchNorm2d(64)
             self.adaptivepool = nn.AdaptiveAvgPool2d(1)
+        elif self.dims == 3:
+            self.conv1 = nn.Conv3d(4, 64, kernel_size=3,
+                                   stride=1, padding=1, bias=False)
+            self.bn1 = nn.BatchNorm3d(64)
+            self.adaptivepool = nn.AdaptiveAvgPool3d(1)
 
         self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)

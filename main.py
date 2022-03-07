@@ -36,6 +36,8 @@ if __name__ == '__main__':
                              'the LR will be gradually increased as a warmstart')
     parser.add_argument('--augmentation', type=str, default='baseline',
                         help='baseline / baseline_cutout / autoaugment / randaugment / album')
+    parser.add_argument('--R_m', default=9, help='Randaugment Magnitude', type=int)
+    parser.add_argument('--R_nb', default=2, help='Randaugment Number of layers', type=int)
     parser.add_argument('--mixup', action='store_true', help='Enables mixing up data samples during training')
     parser.add_argument('--mixup_alpha', default=0.2, type=float)
     parser.add_argument('--label_smoothing', default=0.0, type=float,
@@ -132,7 +134,7 @@ if __name__ == '__main__':
 
         # Make run deterministic if a seed is given
         benchmark = False if seed else True
-        deterministic = True if seed else False
+        deterministic = True if seed else False # TODO check 3d convs
 
         # Configure Trainer
         trainer = pl.Trainer(logger=None,

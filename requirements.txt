@@ -15,3 +15,4 @@ scikit-image>=0.19.1
 scikit-learn>=1.0.1
 scipy>=1.7.3
 timm>=0.4.12
+pytorchvideo>=0.1.5

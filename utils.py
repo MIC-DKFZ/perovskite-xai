@@ -3,6 +3,7 @@ from base_model import ModelConstructor
 #from models.vgg import VGG
 #from models.preact_resnet import PreActResNet18, PreActResNet34, PreActResNet50, PreActResNet101, PreActResNet152
 from models.resnet import ResNet18, ResNet34, ResNet50, ResNet101, ResNet110, ResNet152
+from models.slowfast import SlowFast
 #from models.wide_resnet import WRN2810
 #from models.efficientnet import EfficientNetL2, EfficientNetB7, EfficientNetB8, EfficientNetB0, EfficientNetB1
 #from models.pyramidnet import PyramidNet110, PyramidNet272
@@ -12,7 +13,8 @@ registered_models = ['VGG16',
                       'ResNet18', 'ResNet34', 'ResNet50', 'ResNet101', 'ResNet110', 'ResNet152',
                       'EfficientNetB0', 'EfficientNetB1', 'EfficientNetB7', 'EfficientNetB8', 'EfficientNetL2',
                       'WRN2810',
-                      'PyramidNet110', 'PyramidNet272']
+                      'PyramidNet110', 'PyramidNet272',
+                      'SlowFast']
 
 
 def get_model(model_name, params, num_classes):
@@ -61,6 +63,9 @@ def get_model(model_name, params, num_classes):
         model = PyramidNet110(num_classes=num_classes, hypparams=params)
     elif model_name == 'PyramidNet272':
         model = PyramidNet272(num_classes=num_classes, hypparams=params)
+
+    elif model_name == 'SlowFast':
+        model = SlowFast(num_classes=num_classes, hypparams=params)
 
     return model
 
@@ -115,6 +120,8 @@ def get_params(selected_data_dir, model_name, args, seed):
         'T_max': args.T_max if args.T_max else args.epochs,
         'warmstart': args.warmstart,
         'augmentation': args.augmentation,
+        'R_m': args.R_m,
+        'R_nb': args.R_nb,
         'mixup': args.mixup,
         'mixup_alpha': args.mixup_alpha if args.mixup else 0.0,
         'dataset': args.data,
@@ -153,6 +160,8 @@ def get_params_to_log(params, model_name):
                          'sam': params['sam'],
                          'adaptive_sam': params['adaptive_sam'],
                          'augmentation': params['augmentation'],
+                         'R_m': params['R_m'],
+                         'R_nb': params['R_nb'],
                          'mixup': params['mixup'],
                          'mixup_alpha': params['mixup_alpha'],
                          'model': model_name,
