@@ -1,9 +1,6 @@
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
 import torch
 import pytorchvideo.transforms as v_transforms
 from torchvision.transforms import Compose as torchvision_compose
-import torchvision
 from batchgenerators.transforms.abstract_transforms import Compose, AbstractTransform
 from batchgenerators.transforms.color_transforms import NormalizeTransform, GammaTransform
 from batchgenerators.transforms.crop_and_pad_transforms import RandomShiftTransform
@@ -11,7 +8,6 @@ from batchgenerators.transforms.noise_transforms import BlankRectangleTransform,
     GaussianBlurTransform
 from batchgenerators.transforms.spatial_transforms import MirrorTransform, SpatialTransform_2
 from batchgenerators.transforms.utility_transforms import NumpyToTensor, ReshapeTransform
-from batchgenerators.utilities.file_and_folder_operations import *
 from PIL import Image
 import numpy as np
 
@@ -151,11 +147,9 @@ def get_bg_3d(mean, std):
     return transform_train
 
 
-def get_bg_3d_normalize(mean, std):
+def normalize(mean, std):
     transform_val = TorchCompose([
         PermuteTransform((0, 2, 3, 4, 1)),
-        #NormalizeTransform(mean.tolist(), std.tolist()),
-        #NormalizeTransformV2(mean.numpy(), std.numpy()),
         NormalizeTransformV2(mean, std),
         PermuteTransform((0, 1, 4, 2, 3)),
         NumpyToTensor(['data'])
@@ -163,115 +157,9 @@ def get_bg_3d_normalize(mean, std):
     return transform_val
 
 
-def normalize_3d(mean, std):
+def normalize_torchvision(mean, std):
     t = torchvision_compose([v_transforms.Permute((1, 0, 2, 3)),
                             v_transforms.Normalize(mean, std)
                              ])
 
     return t
-
-class Normalize1D(object):
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
-
-    def __call__(self, sample):
-        t = (sample - self.mean.unsqueeze(1))/self.std.unsqueeze(1)
-        return t
-
-
-def normalize_1d(mean, std):
-
-    t = Normalize1D(mean, std)
-
-    return t
-
-
-'''class Normalize3D(object):
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
-
-    def __call__(self, sample):
-        t = (sample - self.mean.reshape(1, -1, 1, 1))/self.std.reshape(1, -1, 1, 1)
-        return t
-
-
-def normalize_3d(mean, std):
-
-    t = Normalize3D(mean, std)
-
-    return t'''
-
-
-
-
-
-class ApplyTransformsToNonStandardChannels(object):
-    def __init__(self, transform):
-        '''
-        Processes each channel independently
-        '''
-
-        self.transform = transform
-
-    def __call__(self, video):
-        # expects video in shape:  channel, time, h, w
-        res = [self.transform(i.unsqueeze(1).repeat_interleave(3, dim=1)) for i in video]
-
-        return torch.stack(res)[:, :, 0]
-
-
-def randaugment_3d(mean, std, randaugment_magnitude=9, randaugment_num_layers=2):
-    t = torchvision_compose([torchvision.transforms.RandomHorizontalFlip(p=0.5),
-                 ApplyTransformsToNonStandardChannels(
-                     v_transforms.RandAugment(magnitude=randaugment_magnitude, num_layers=randaugment_num_layers,
-                                              prob=0.5, sampling_type='gaussian')),
-                 # v_transforms.AugMix(magnitude=3, alpha=1.0, width=3, depth=- 1, transform_hparas=None, sampling_hparas=None),
-                 # v_transforms.RandAugment(magnitude=9, num_layers=2, prob=0.5, transform_hparas=possible_transforms,
-                 # sampling_type='gaussian', sampling_hparas=SAMPLING_RANDAUG_DEFAULT_HPARAS),
-                 v_transforms.Permute((1, 0, 2, 3)),
-                 v_transforms.Normalize(mean, std)])
-
-    return t
-
-
-def normalize_2d(mean, std):
-
-    t = A.Compose([A.Normalize(mean=mean.reshape(1, 1, -1), std=std.reshape(1, 1, -1), max_pixel_value=1.0),
-                   ToTensorV2()])
-
-    return t
-
-
-def baseline_2d(mean, std):
-
-    t = A.Compose([A.Flip(),
-                   A.GaussianBlur(),
-                   A.Normalize(mean=mean.reshape(1, 1, -1), std=std.reshape(1, 1, -1), max_pixel_value=1.0),
-                   ToTensorV2()])
-
-    return t
-
-
-def aug1_2d(mean, std):
-
-    t = A.Compose([A.Flip(),
-                   A.OneOf([
-                        A.MotionBlur(p=0.2),
-                        A.MedianBlur(blur_limit=3, p=0.1),
-                        A.Blur(blur_limit=3, p=0.1),
-                     ], p=0.6),
-                   A.OneOf([
-                        A.OpticalDistortion(p=0.3),
-                        A.GridDistortion(p=0.1),
-                    ], p=0.6),
-                   #A.ChannelDropout(p=0.3, fill_value=1.0),
-                   A.ChannelShuffle(p=0.2),
-                   A.Normalize(mean=mean.reshape(1, 1, -1), std=std.reshape(1, 1, -1), max_pixel_value=1.0),
-                   ToTensorV2()])
-
-    return t
-
-
-

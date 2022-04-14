@@ -41,7 +41,7 @@ class PerovskiteDataset1d(Dataset):
                 # get label
                 lb.append(patch[label])
 
-            self.labels = (np.array(lb)/20.).astype(np.float32)
+            self.labels = (np.array(lb)).astype(np.float32)
             self.videos = torch.from_numpy((np.array(videos)/2**16).astype(np.float32))
 
         else:
@@ -119,7 +119,7 @@ class PerovskiteDataset2d(Dataset):
                 # get label
                 lb.append(patch[label])
 
-            self.labels = (np.array(lb)/20.).astype(np.float32)
+            self.labels = (np.array(lb)).astype(np.float32)
             self.videos = (np.array(videos)/2**16).astype(np.float32)
 
         else:
@@ -198,7 +198,7 @@ class PerovskiteDataset2d_time(Dataset):
                 # get label
                 lb.append(patch[label])
 
-            self.labels = (np.array(lb)/20.).astype(np.float32)
+            self.labels = (np.array(lb)).astype(np.float32)
             self.videos = (np.array(videos)/2**16).astype(np.float32)
 
         else:
@@ -274,7 +274,7 @@ class PerovskiteDataset3d(Dataset):
                 # get label
                 lb.append(patch[label])
 
-            self.labels = (np.array(lb)/20.).astype(np.float32) # TODO torch?
+            self.labels = (np.array(lb)).astype(np.float32) # TODO torch?
             self.videos = torch.from_numpy((np.array(videos)/2**16).astype(np.float32))
 
         else:

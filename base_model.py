@@ -18,8 +18,6 @@ from timm.optim import RMSpropTF
 from data.perovskite_dataset import PerovskiteDataset1d, PerovskiteDataset2d, PerovskiteDataset3d, PerovskiteDataset2d_time
 from torchmetrics import F1, Precision, Recall, Accuracy, MeanAbsoluteError, MeanSquaredError
 
-from data.augmentations import *
-
 
 class BaseModel(pl.LightningModule):
 
@@ -76,8 +74,6 @@ class BaseModel(pl.LightningModule):
         self.R_m = hypparams['R_m']
         self.R_nb = hypparams['R_nb']
 
-        baseline_val_MSE = MeanSquaredError()
-        baseline_val_MAE = MeanAbsoluteError()
         if self.dims == 1:
             self.train_mean, self.train_std = PerovskiteDataset1d(data_dir=self.data_dir, transform=None, fold=self.fold,
                                                                   split='train', label='PCE_mean').get_stats()
@@ -100,17 +96,6 @@ class BaseModel(pl.LightningModule):
         #self.train_mean, self.train_std = torch.tensor([0.5, 0.5, 0.5, 0.5]), torch.tensor([0.25, 0.25, 0.25, 0.25])
         print(self.train_mean, self.train_std)
 
-        label_mean = PerovskiteDataset1d(data_dir=self.data_dir, transform=None, fold=self.fold,
-                                         split='train', label='PCE_mean').get_label_mean()
-
-        val_labels = PerovskiteDataset1d(data_dir=self.data_dir, transform=None, fold=self.fold, split='train',
-                                         label='PCE_mean', val=True).get_all_labels()
-
-        self.baseline_val_MSE = baseline_val_MSE(torch.from_numpy(np.array(len(val_labels) * [label_mean])),
-                                                 torch.from_numpy(val_labels))
-        self.baseline_val_MAE = baseline_val_MAE(torch.from_numpy(np.array(len(val_labels) * [label_mean])),
-                                                 torch.from_numpy(val_labels))
-
         os.makedirs(self.data_dir, exist_ok=True)
         self.download = False if any(os.scandir(self.data_dir)) else True
 
@@ -121,9 +106,6 @@ class BaseModel(pl.LightningModule):
         # Loss
         #self.criterion = nn.CrossEntropyLoss()#weight=class_weights)
         self.criterion = nn.L1Loss()#nn.MSELoss()
-
-        # Inference
-        self.softmax = nn.Softmax(dim=1)
 
         # Seed
         self.seed = hypparams['seed']
@@ -201,10 +183,6 @@ class BaseModel(pl.LightningModule):
         self.log('val_MAE', self.val_MAE, on_step=False, on_epoch=True, prog_bar=True)
 
     def on_train_start(self):
-
-        # log baseline
-        self.log('baseline_val_MSE', self.baseline_val_MSE)
-        self.log('baseline_val_MAE', self.baseline_val_MAE)
 
         from models.resnet import BasicBlock, Bottleneck
         #from models.wide_resnet import BasicBlock as Wide_BasicBlock, Bottleneck as Wide_Bottleneck
@@ -326,7 +304,7 @@ class BaseModel(pl.LightningModule):
 
     def train_dataloader(self):
 
-        if self.aug == 'baseline':
+        '''if self.aug == 'baseline':
             transform_train = baseline_2d(self.train_mean, self.train_std)
 
         elif self.aug == 'aug1':
@@ -342,7 +320,7 @@ class BaseModel(pl.LightningModule):
             transform_train = get_bg_3d_normalize(self.train_mean, self.train_std)
 
         elif self.aug == 'bg_3d':
-            transform_train = get_bg_3d(self.train_mean, self.train_std)
+            transform_train = get_bg_3d(self.train_mean, self.train_std)'''
 
         '''elif self.aug == 'equalize':
             transform_train = get_equalize_aug(self.train_mean, self.train_std)
@@ -362,11 +340,22 @@ class BaseModel(pl.LightningModule):
 
         if self.dataset == 'Perov_1d':
 
+            from data.augmentations.perov_1d import normalize
+
             trainset = PerovskiteDataset1d(data_dir=self.data_dir,
-                                           transform=normalize_1d(self.train_mean, self.train_std), fold=self.fold,
+                                           transform=normalize(self.train_mean, self.train_std), fold=self.fold,
                                            split='train', label='PCE_mean', val=False)
 
         elif self.dataset == 'Perov_2d':
+
+            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d
+
+            if self.aug == 'norm':
+                transform_train = normalize(self.train_mean, self.train_std)
+            elif self.aug == 'baseline':
+                transform_train = baseline_2d(self.train_mean, self.train_std)
+            elif self.aug == 'aug1':
+                transform_train = aug1_2d(self.train_mean, self.train_std)
 
             trainset = PerovskiteDataset2d(data_dir=self.data_dir,
                                            transform=transform_train, fold=self.fold,
@@ -374,11 +363,27 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == 'Perov_time_2d':
 
+            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d
+
+            if self.aug == 'norm':
+                transform_train = normalize(self.train_mean, self.train_std)
+            elif self.aug == 'baseline':
+                transform_train = baseline_2d(self.train_mean, self.train_std)
+            elif self.aug == 'aug1':
+                transform_train = aug1_2d(self.train_mean, self.train_std)
+
             trainset = PerovskiteDataset2d_time(data_dir=self.data_dir,
                                            transform=transform_train, fold=self.fold,
                                            split='train', label='PCE_mean', val=False)
 
         elif self.dataset == 'Perov_3d':
+
+            from data.augmentations.perov_3d import normalize, get_bg_3d
+
+            if self.aug == 'norm':
+                transform_train = normalize(self.train_mean, self.train_std)
+            elif self.aug == 'aug1':
+                transform_train = get_bg_3d(self.train_mean, self.train_std)
 
             trainset = PerovskiteDataset3d(data_dir=self.data_dir,
                                            transform=transform_train, fold=self.fold,
@@ -392,31 +397,35 @@ class BaseModel(pl.LightningModule):
     def val_dataloader(self):
 
         if self.dataset == 'Perov_1d':
+
+            from data.augmentations.perov_1d import normalize
+
             valset = PerovskiteDataset1d(data_dir=self.data_dir,
-                                         transform=normalize_1d(self.train_mean, self.train_std), fold=self.fold,
+                                         transform=normalize(self.train_mean, self.train_std), fold=self.fold,
                                          split='train', label='PCE_mean', val=True)
 
         elif self.dataset == 'Perov_2d':
+
+            from data.augmentations.perov_2d import normalize
+
             valset = PerovskiteDataset2d(data_dir=self.data_dir,
-                                         transform=normalize_2d(self.train_mean, self.train_std), fold=self.fold,
+                                         transform=normalize(self.train_mean, self.train_std), fold=self.fold,
                                          split='train', label='PCE_mean', val=True)
 
         elif self.dataset == 'Perov_time_2d':
+
+            from data.augmentations.perov_2d import normalize
+
             valset = PerovskiteDataset2d_time(data_dir=self.data_dir,
-                                         transform=normalize_2d(self.train_mean, self.train_std), fold=self.fold,
+                                         transform=normalize(self.train_mean, self.train_std), fold=self.fold,
                                          split='train', label='PCE_mean', val=True)
 
         elif self.dataset == 'Perov_3d':
 
-            if self.aug == 'bg_norm_3d':
-                val_transform = get_bg_3d_normalize(self.train_mean, self.train_std)
-            elif self.aug == 'norm_3d':
-                val_transform = normalize_3d(self.train_mean, self.train_std)
-            else:
-                val_transform = normalize_3d(self.train_mean, self.train_std)
+            from data.augmentations.perov_3d import normalize
 
             valset = PerovskiteDataset3d(data_dir=self.data_dir,
-                                         transform=val_transform, fold=self.fold,
+                                         transform=normalize(self.train_mean, self.train_std), fold=self.fold,
                                          split='train', label='PCE_mean', val=True)
 
         valloader = DataLoader(valset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers,
