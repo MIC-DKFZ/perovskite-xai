@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser.add_argument('--warmstart', default=0, type=int,
                         help='Specifies the nb of epochs for the CosineAnneal scheduler where '
                              'the LR will be gradually increased as a warmstart')
-    parser.add_argument('--augmentation', type=str, default='baseline',
+    parser.add_argument('--augmentation', type=str, default='norm',
                         help='baseline / baseline_cutout / autoaugment / randaugment / album')
     parser.add_argument('--R_m', default=9, help='Randaugment Magnitude', type=int)
     parser.add_argument('--R_nb', default=2, help='Randaugment Number of layers', type=int)

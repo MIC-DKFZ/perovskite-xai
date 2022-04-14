@@ -36,10 +36,12 @@ class PerovskiteDataset1d(Dataset):
                 # get image data (1D: mean intensity of images over time)
                 video = np.load(os.path.join(base_dir, '{}/{}.npy'.format(patch['substrateName'], patch['patch_loc'])),
                                 mmap_mode='r').mean(axis=(2, 3))  # mean of every image per time and channel
-                videos.append(video.T)
 
-                # get label
-                lb.append(patch[label])
+                if patch['patch_loc'] < 70:
+                    videos.append(video.T)
+                    # get label
+                    lb.append(patch[label])
+
 
             self.labels = (np.array(lb)).astype(np.float32)
             self.videos = torch.from_numpy((np.array(videos)/2**16).astype(np.float32))
@@ -68,17 +70,6 @@ class PerovskiteDataset1d(Dataset):
         assert not self.val
 
         return self.videos.mean(dim=(0, 2)), self.videos.std(dim=(0, 2))
-
-    def get_label_mean(self):
-
-        assert self.split == 'train'
-        assert not self.val
-
-        return np.mean(self.labels)
-
-    def get_all_labels(self):
-
-        return self.labels
 
 
 class PerovskiteDataset2d(Dataset):
@@ -114,10 +105,11 @@ class PerovskiteDataset2d(Dataset):
                 # get image data (2D: for each video select the frame that has the highest PL)
                 video = np.load(os.path.join(base_dir, '{}/{}.npy'.format(patch['substrateName'], patch['patch_loc'])),
                                 mmap_mode='r')[maxPL]
-                videos.append(video.transpose(1, 2, 0))
 
-                # get label
-                lb.append(patch[label])
+                if patch['patch_loc'] < 70:
+                    videos.append(video.transpose(1, 2, 0))
+                    # get label
+                    lb.append(patch[label])
 
             self.labels = (np.array(lb)).astype(np.float32)
             self.videos = (np.array(videos)/2**16).astype(np.float32)
@@ -146,17 +138,6 @@ class PerovskiteDataset2d(Dataset):
         assert not self.val
 
         return self.videos.mean(axis=(0, 1, 2)), self.videos.std(axis=(0, 1, 2))
-
-    def get_label_mean(self):
-
-        assert self.split == 'train'
-        assert not self.val
-
-        return np.mean(self.labels)
-
-    def get_all_labels(self):
-
-        return self.labels
 
 
 class PerovskiteDataset2d_time(Dataset):
@@ -193,10 +174,11 @@ class PerovskiteDataset2d_time(Dataset):
                 # time, channel, height, width
                 video = np.load(os.path.join(base_dir, '{}/{}.npy'.format(patch['substrateName'], patch['patch_loc'])),
                                 mmap_mode='r')[::10].mean(axis=3)
-                videos.append(video.transpose(2, 0, 1))  # x, time, channel
 
-                # get label
-                lb.append(patch[label])
+                if patch['patch_loc'] < 70:
+                    videos.append(video.transpose(2, 0, 1))  # x, time, channel
+                    # get label
+                    lb.append(patch[label])
 
             self.labels = (np.array(lb)).astype(np.float32)
             self.videos = (np.array(videos)/2**16).astype(np.float32)
@@ -225,17 +207,6 @@ class PerovskiteDataset2d_time(Dataset):
         assert not self.val
 
         return self.videos.mean(axis=(0, 1, 2)), self.videos.std(axis=(0, 1, 2))
-
-    def get_label_mean(self):
-
-        assert self.split == 'train'
-        assert not self.val
-
-        return np.mean(self.labels)
-
-    def get_all_labels(self):
-
-        return self.labels
 
 
 class PerovskiteDataset3d(Dataset):
@@ -269,10 +240,11 @@ class PerovskiteDataset3d(Dataset):
                 # get image data (3D)
                 video = np.load(os.path.join(base_dir, '{}/{}.npy'.format(patch['substrateName'], patch['patch_loc'])),
                                 mmap_mode='r')[::20]
-                videos.append(video)
 
-                # get label
-                lb.append(patch[label])
+                if patch['patch_loc'] < 70:
+                    videos.append(video)
+                    # get label
+                    lb.append(patch[label])
 
             self.labels = (np.array(lb)).astype(np.float32) # TODO torch?
             self.videos = torch.from_numpy((np.array(videos)/2**16).astype(np.float32))
@@ -303,14 +275,3 @@ class PerovskiteDataset3d(Dataset):
         assert not self.val
 
         return self.videos.mean(axis=(0, 1, 3, 4)), self.videos.std(axis=(0, 1, 3, 4))
-
-    def get_label_mean(self):
-
-        assert self.split == 'train'
-        assert not self.val
-
-        return np.mean(self.labels)
-
-    def get_all_labels(self):
-
-        return self.labels
