@@ -1,4 +1,5 @@
 experiments
+checkpoints
 cluster_jobs.txt
 3d.ipynb
 baselines_backup.ipynb
