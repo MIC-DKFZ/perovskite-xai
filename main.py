@@ -35,16 +35,20 @@ if __name__ == "__main__":
         "--T_max",
         default=None,
         type=int,
-        help="Defines the amount of epochs in which CosineAnneal scheduler decays LR to minimum LR, "
-        "afterwards LR gets increased again to initial LR for T_max epochs before decaying again,"
-        "if not specified, T_max will be set to the nb of epochs so that LR never gets increased",
+        help=(
+            "Defines the amount of epochs in which CosineAnneal scheduler decays LR to minimum LR, "
+            "afterwards LR gets increased again to initial LR for T_max epochs before decaying again,"
+            "if not specified, T_max will be set to the nb of epochs so that LR never gets increased"
+        ),
     )
     parser.add_argument(
         "--warmstart",
         default=0,
         type=int,
-        help="Specifies the nb of epochs for the CosineAnneal scheduler where "
-        "the LR will be gradually increased as a warmstart",
+        help=(
+            "Specifies the nb of epochs for the CosineAnneal scheduler where "
+            "the LR will be gradually increased as a warmstart"
+        ),
     )
     parser.add_argument(
         "--augmentation",
@@ -60,13 +64,13 @@ if __name__ == "__main__":
         "--label_smoothing",
         default=0.0,
         type=float,
-        help="Label Smoothing parameter, range:0.0-1.0, the higher the more smoothing, default applies" "no smoothing",
+        help="Label Smoothing parameter, range:0.0-1.0, the higher the more smoothing, default appliesno smoothing",
     )
     parser.add_argument(
         "--stochastic_depth",
         default=0.0,
         type=float,
-        help="Dropout rate for stochastic depth, only for ResNet-like models, default applies no" "stochastic depth",
+        help="Dropout rate for stochastic depth, only for ResNet-like models, default applies nostochastic depth",
     )
     parser.add_argument(
         "--final_layer_dropout",
@@ -81,17 +85,24 @@ if __name__ == "__main__":
     parser.add_argument(
         "--zero_init_residual",
         action="store_true",
-        help="Enables Zero-initialization of the last BN (or conv for PreAct models) in each "
-        "residual branch, only for ResNet-like models",
+        help=(
+            "Enables Zero-initialization of the last BN (or conv for PreAct models) in each "
+            "residual branch, only for ResNet-like models"
+        ),
     )
     parser.add_argument(
-        "--bottleneck", action="store_true", help="Whether to use bottleneck building " "blocks for ResNet"
+        "--bottleneck", action="store_true", help="Whether to use bottleneck building blocks for ResNet"
     )
     # Seeding
     parser.add_argument("--seed", default=None, help="If a seed is specified training will be deterministic and slower")
     # Data and experiment directories
     parser.add_argument("--data", help="Name of the dataset", default="Perov_2d")
     parser.add_argument("--use_all_folds", action="store_true")
+    parser.add_argument(
+        "--no_border",
+        action="store_true",
+        help="ignores the left substrate side where a border from backflowing fluid is visible",
+    )
     parser.add_argument("--num_workers", help="Number of workers for loading the data", type=int, default=8)
     parser.add_argument(
         "--data_dir",
@@ -211,7 +222,8 @@ if __name__ == "__main__":
         mlflow.pytorch.autolog(log_models=False)
 
         # set MLflow experiment name
-        mlflow.set_experiment(args.data)  # creates exp if it does not exist yet
+        exp_name = args.data if not args.no_border else args.data + "_noBorder"
+        mlflow.set_experiment(exp_name)  # creates exp if it does not exist yet
         run_name = f"{args.data}-{model_name}"
 
         # Train the model

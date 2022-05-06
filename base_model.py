@@ -73,6 +73,7 @@ class BaseModel(pl.LightningModule):
         # Data and Dataloading
         self.data_dir = hypparams["data_dir"]
         self.use_all_folds = hypparams["use_all_folds"]
+        self.no_border = hypparams["no_border"]
         self.dataset = hypparams["dataset"]
         self.num_workers = hypparams["num_workers"]
         self.fold = hypparams["fold"]
@@ -82,38 +83,78 @@ class BaseModel(pl.LightningModule):
 
         if self.dims == 1:
             self.train_mean, self.train_std = PerovskiteDataset1d(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_stats()
 
             self.scaler = PerovskiteDataset1d(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_fitted_scaler()
 
         elif self.dims == 2 and self.dataset == "Perov_2d":
             self.train_mean, self.train_std = PerovskiteDataset2d(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_stats()
 
             self.scaler = PerovskiteDataset2d(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_fitted_scaler()
 
         elif self.dims == 2 and self.dataset == "Perov_time_2d":
             self.train_mean, self.train_std = PerovskiteDataset2d_time(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_stats()
 
             self.scaler = PerovskiteDataset2d_time(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_fitted_scaler()
 
         elif self.dims == 3:
             self.train_mean, self.train_std = PerovskiteDataset3d(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_stats()
 
             self.scaler = PerovskiteDataset3d(
-                data_dir=self.data_dir, transform=None, fold=self.fold, split="train", label="PCE_mean"
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label="PCE_mean",
+                no_border=self.no_border,
             ).get_fitted_scaler()
 
         # self.train_mean, self.train_std = torch.tensor([0.5, 0.5, 0.5, 0.5]), torch.tensor([0.25, 0.25, 0.25, 0.25])
@@ -405,6 +446,7 @@ class BaseModel(pl.LightningModule):
                 label="PCE_mean",
                 val=False,
                 scaler=self.scaler,
+                no_border=self.no_border,
             )
 
         elif self.dataset == "Perov_2d":
@@ -427,6 +469,8 @@ class BaseModel(pl.LightningModule):
                 split="train",
                 label="PCE_mean",
                 val=False,
+                scaler=self.scaler,
+                no_border=self.no_border,
             )
 
         elif self.dataset == "Perov_time_2d":
@@ -449,6 +493,8 @@ class BaseModel(pl.LightningModule):
                 split="train",
                 label="PCE_mean",
                 val=False,
+                scaler=self.scaler,
+                no_border=self.no_border,
             )
 
         elif self.dataset == "Perov_3d":
@@ -467,6 +513,8 @@ class BaseModel(pl.LightningModule):
                 split="train",
                 label="PCE_mean",
                 val=False,
+                scaler=self.scaler,
+                no_border=self.no_border,
             )
 
         trainloader = DataLoader(
@@ -497,6 +545,7 @@ class BaseModel(pl.LightningModule):
                     label="PCE_mean",
                     val=True,
                     scaler=self.scaler,
+                    no_border=self.no_border,
                 )
 
             elif self.dataset == "Perov_2d":
@@ -510,6 +559,8 @@ class BaseModel(pl.LightningModule):
                     split="train",
                     label="PCE_mean",
                     val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
                 )
 
             elif self.dataset == "Perov_time_2d":
@@ -523,6 +574,8 @@ class BaseModel(pl.LightningModule):
                     split="train",
                     label="PCE_mean",
                     val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
                 )
 
             elif self.dataset == "Perov_3d":
@@ -536,6 +589,8 @@ class BaseModel(pl.LightningModule):
                     split="train",
                     label="PCE_mean",
                     val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
                 )
 
             valloader = DataLoader(

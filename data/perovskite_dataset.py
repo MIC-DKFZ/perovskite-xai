@@ -7,7 +7,9 @@ from sklearn.preprocessing import StandardScaler
 
 
 class PerovskiteDataset1d(Dataset):
-    def __init__(self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None):
+    def __init__(
+        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+    ):
 
         self.transform = transform
         self.split = split
@@ -38,17 +40,19 @@ class PerovskiteDataset1d(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            # get image data (1D: mean intensity of images over time)
-            video = np.load(
-                os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
-                mmap_mode="r",
-            ).mean(
-                axis=(2, 3)
-            )  # mean of every image per time and channel
-            videos.append(video.T)
+            if patch["patch_loc"] < 70 or not no_border:
 
-            # get label
-            lb.append(patch[label])
+                # get image data (1D: mean intensity of images over time)
+                video = np.load(
+                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    mmap_mode="r",
+                ).mean(
+                    axis=(2, 3)
+                )  # mean of every image per time and channel
+                videos.append(video.T)
+
+                # get label
+                lb.append(patch[label])
 
         # self.labels = (np.array(lb) / 20).astype(np.float32)
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
@@ -94,7 +98,9 @@ class PerovskiteDataset1d(Dataset):
 
 
 class PerovskiteDataset2d(Dataset):
-    def __init__(self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None):
+    def __init__(
+        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+    ):
 
         self.transform = transform
         self.split = split
@@ -125,17 +131,19 @@ class PerovskiteDataset2d(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
+            if patch["patch_loc"] < 70 or not no_border:
 
-            # get image data (2D: for each video select the frame that has the highest PL)
-            video = np.load(
-                os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
-                mmap_mode="r",
-            )[maxPL]
-            videos.append(video.transpose(1, 2, 0))
+                maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
 
-            # get label
-            lb.append(patch[label])
+                # get image data (2D: for each video select the frame that has the highest PL)
+                video = np.load(
+                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    mmap_mode="r",
+                )[maxPL]
+                videos.append(video.transpose(1, 2, 0))
+
+                # get label
+                lb.append(patch[label])
 
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
         self.videos = (np.array(videos) / 2**16).astype(np.float32)
@@ -180,7 +188,9 @@ class PerovskiteDataset2d(Dataset):
 
 
 class PerovskiteDataset2d_time(Dataset):
-    def __init__(self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None):
+    def __init__(
+        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+    ):
 
         self.transform = transform
         self.split = split
@@ -211,20 +221,22 @@ class PerovskiteDataset2d_time(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
+            if patch["patch_loc"] < 70 or not no_border:
 
-            # get image data (2D_time: take x and time instead of x and y, aggregate all y's by mean)
-            # time, channel, height, width
-            video = np.load(
-                os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
-                mmap_mode="r",
-            )[::10].mean(
-                axis=3
-            )  # every 10th timestep
-            videos.append(video.transpose(2, 0, 1))  # x, time, channel
+                maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
 
-            # get label
-            lb.append(patch[label])
+                # get image data (2D_time: take x and time instead of x and y, aggregate all y's by mean)
+                # time, channel, height, width
+                video = np.load(
+                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    mmap_mode="r",
+                )[::10].mean(
+                    axis=3
+                )  # every 10th timestep
+                videos.append(video.transpose(2, 0, 1))  # x, time, channel
+
+                # get label
+                lb.append(patch[label])
 
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
         self.videos = (np.array(videos) / 2**16).astype(np.float32)
@@ -269,7 +281,9 @@ class PerovskiteDataset2d_time(Dataset):
 
 
 class PerovskiteDataset3d(Dataset):
-    def __init__(self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None):
+    def __init__(
+        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+    ):
 
         self.transform = transform
         self.split = split
@@ -300,15 +314,17 @@ class PerovskiteDataset3d(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            # get image data (3D)
-            video = np.load(
-                os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
-                mmap_mode="r",
-            )[::20]
-            videos.append(video)
+            if patch["patch_loc"] < 70 or not no_border:
 
-            # get label
-            lb.append(patch[label])
+                # get image data (3D)
+                video = np.load(
+                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    mmap_mode="r",
+                )[::20]
+                videos.append(video)
+
+                # get label
+                lb.append(patch[label])
 
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
         self.videos = torch.from_numpy((np.array(videos) / 2**16).astype(np.float32))

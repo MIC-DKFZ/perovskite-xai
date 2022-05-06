@@ -111,7 +111,7 @@ def detect_misconfigurations(model_name, args):
     if args.T_max:
         assert (
             args.scheduler == "CosineAnneal"
-        ), "T_max is a parameter of the Cosine Annealing Scheduler, " "but you specified {}".format(args.scheduler)
+        ), "T_max is a parameter of the Cosine Annealing Scheduler, but you specified {}".format(args.scheduler)
 
     if args.mixup_alpha != 0.2:
         assert args.mixup, "Mixup has to be True for specifying the mixup alpha parameter"
@@ -121,13 +121,13 @@ def detect_misconfigurations(model_name, args):
             "ResNet" in model_name or "Pyramid" in model_name and "18" not in model_name and "34" not in model_name
         ), "Bottleneck not available for {}".format(model_name)
     if args.zero_init_residual or args.se or args.shakedrop:
-        assert "ResNet" in model_name or "WRN" in model_name or "Pyramid" in model_name, (
-            "specified regularization " "only for ResNet-like models"
-        )
+        assert (
+            "ResNet" in model_name or "WRN" in model_name or "Pyramid" in model_name
+        ), "specified regularization only for ResNet-like models"
     if args.stochastic_depth != 0 or args.final_layer_dropout != 0:
-        assert "ResNet" in model_name or "WRN" in model_name or "Pyramid" in model_name, (
-            "specified regularization " "only for ResNet-like models"
-        )
+        assert (
+            "ResNet" in model_name or "WRN" in model_name or "Pyramid" in model_name
+        ), "specified regularization only for ResNet-like models"
 
 
 def get_params(selected_data_dir, model_name, args, seed):
@@ -165,6 +165,7 @@ def get_params(selected_data_dir, model_name, args, seed):
         "bottleneck": args.bottleneck,
         "seed": seed,
         "use_all_folds": args.use_all_folds,
+        "no_border": args.no_border,
     }
 
     return params
@@ -205,6 +206,7 @@ def get_params_to_log(params, model_name):
         "fold": params["fold"],
         "experiment_id": params["experiment_id"],
         "use_all_folds": params["use_all_folds"],
+        "no_border": params["no_border"],
     }
 
     return params_to_log
