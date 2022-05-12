@@ -468,7 +468,7 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == "Perov_2d":
 
-            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d
+            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d, aug4_2d, aug5_2d
 
             if self.aug == "norm":
                 transform_train = normalize(self.train_mean, self.train_std)
@@ -480,6 +480,10 @@ class BaseModel(pl.LightningModule):
                 transform_train = aug2_2d(self.train_mean, self.train_std)
             elif self.aug == "aug3":
                 transform_train = aug3_2d(self.train_mean, self.train_std)
+            elif self.aug == "aug4":
+                transform_train = aug4_2d(self.train_mean, self.train_std)
+            elif self.aug == "aug5":
+                transform_train = aug5_2d(self.train_mean, self.train_std)
 
             trainset = PerovskiteDataset2d(
                 data_dir=self.data_dir,
@@ -494,7 +498,7 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == "Perov_time_2d":
 
-            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d
+            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d, aug4_2d, aug5_2d
 
             if self.aug == "norm":
                 transform_train = normalize(self.train_mean, self.train_std)
@@ -506,6 +510,10 @@ class BaseModel(pl.LightningModule):
                 transform_train = aug2_2d(self.train_mean, self.train_std, time=True)
             elif self.aug == "aug3":
                 transform_train = aug3_2d(self.train_mean, self.train_std, time=True)
+            elif self.aug == "aug4":
+                transform_train = aug4_2d(self.train_mean, self.train_std, time=True)
+            elif self.aug == "aug5":
+                transform_train = aug5_2d(self.train_mean, self.train_std, time=True)
 
             trainset = PerovskiteDataset2d_time(
                 data_dir=self.data_dir,

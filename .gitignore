@@ -3,7 +3,7 @@ checkpoints
 cluster_jobs.txt
 3d.ipynb
 baselines_backup.ipynb
-aug_vis.ipynb
+aug_vis*.ipynb
 .idea
 __pycache__
 .git
