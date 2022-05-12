@@ -29,6 +29,12 @@ class BaseModel(pl.LightningModule):
     def __init__(self, hypparams):
         super(BaseModel, self).__init__()
 
+        # Args that are also needed for predicting
+        self.name = hypparams["name"]
+        self.dims = hypparams["dims"]
+        self.no_border = hypparams["no_border"]
+        self.data_dir = hypparams["data_dir"]
+
         # Metrics
         """self.train_f1 = F1(average='macro', num_classes=1, multiclass=False)
         self.train_precision = Precision(average='macro', num_classes=1, multiclass=False)
@@ -45,41 +51,42 @@ class BaseModel(pl.LightningModule):
         self.val_MAE = MeanAbsoluteError()
 
         # Training Args
-        self.name = hypparams["name"]
-        self.batch_size = hypparams["batch_size"]
-        self.lr = hypparams["lr"]
-        self.weight_decay = hypparams["weight_decay"]
-        self.optimizer = hypparams["optimizer"]
-        self.nesterov = hypparams["nesterov"]
-        self.sam = hypparams["sam"]
-        self.adaptive_sam = hypparams["adaptive_sam"]
-        self.scheduler = hypparams["scheduler"]
-        self.T_max = hypparams["T_max"]
-        self.warmstart = hypparams["warmstart"]
-        self.epochs = hypparams["epochs"]
+        self.batch_size = hypparams["batch_size"] if "batch_size" in hypparams else None
+        self.lr = hypparams["lr"] if "lr" in hypparams else None
+        self.weight_decay = hypparams["weight_decay"] if "weight_decay" in hypparams else None
+        self.optimizer = hypparams["optimizer"] if "optimizer" in hypparams else None
+        self.nesterov = hypparams["nesterov"] if "nesterov" in hypparams else None
+        self.sam = hypparams["sam"] if "sam" in hypparams else None
+        self.adaptive_sam = hypparams["adaptive_sam"] if "adaptive_sam" in hypparams else None
+        self.scheduler = hypparams["scheduler"] if "scheduler" in hypparams else None
+        self.T_max = hypparams["T_max"] if "T_max" in hypparams else None
+        self.warmstart = hypparams["warmstart"] if "warmstart" in hypparams else None
+        self.epochs = hypparams["epochs"] if "epochs" in hypparams else None
 
         # Regularization techniques
-        self.aug = hypparams["augmentation"]
-        self.mixup = hypparams["mixup"]
-        self.mixup_alpha = hypparams["mixup_alpha"]  # 0.2
-        self.label_smoothing = hypparams["label_smoothing"]  # 0.1
-        self.stochastic_depth = hypparams["stochastic_depth"]  # 0.1 (with higher resolution maybe 0.2)
-        self.resnet_dropout = hypparams["resnet_dropout"]  # 0.5
-        self.se = hypparams["squeeze_excitation"]
-        self.apply_shakedrop = hypparams["shakedrop"]
-        self.undecay_norm = hypparams["undecay_norm"]
-        self.zero_init_residual = hypparams["zero_init_residual"]
+        self.aug = hypparams["augmentation"] if "augmentation" in hypparams else None
+        self.mixup = hypparams["mixup"] if "mixup" in hypparams else None
+        self.mixup_alpha = hypparams["mixup_alpha"] if "mixup_alpha" in hypparams else None  # 0.2
+        self.label_smoothing = hypparams["label_smoothing"] if "label_smoothing" in hypparams else None  # 0.1
+        self.stochastic_depth = (
+            hypparams["stochastic_depth"] if "stochastic_depth" in hypparams else None
+        )  # 0.1 (with higher resolution maybe 0.2)
+        self.resnet_dropout = hypparams["resnet_dropout"] if "resnet_dropout" in hypparams else None  # 0.5
+        self.se = hypparams["squeeze_excitation"] if "squeeze_excitation" in hypparams else None
+        self.apply_shakedrop = hypparams["shakedrop"] if "shakedrop" in hypparams else None
+        self.undecay_norm = hypparams["undecay_norm"] if "undecay_norm" in hypparams else None
+        self.zero_init_residual = hypparams["zero_init_residual"] if "zero_init_residual" in hypparams else None
 
         # Data and Dataloading
-        self.data_dir = hypparams["data_dir"]
-        self.use_all_folds = hypparams["use_all_folds"]
-        self.no_border = hypparams["no_border"]
-        self.dataset = hypparams["dataset"]
-        self.num_workers = hypparams["num_workers"]
-        self.fold = hypparams["fold"]
-        self.dims = hypparams["dims"]
-        self.R_m = hypparams["R_m"]
-        self.R_nb = hypparams["R_nb"]
+
+        self.use_all_folds = hypparams["use_all_folds"] if "use_all_folds" in hypparams else None
+
+        self.dataset = hypparams["dataset"] if "dataset" in hypparams else None
+        self.num_workers = hypparams["num_workers"] if "num_workers" in hypparams else None
+        self.fold = hypparams["fold"] if "fold" in hypparams else None
+
+        self.R_m = hypparams["R_m"] if "R_m" in hypparams else None
+        self.R_nb = hypparams["R_nb"] if "R_nb" in hypparams else None
 
         if self.dims == 1:
             self.train_mean, self.train_std = PerovskiteDataset1d(
@@ -172,7 +179,7 @@ class BaseModel(pl.LightningModule):
         self.criterion = nn.L1Loss()  # nn.HuberLoss(delta=0.6)    # nn.MSELoss()
 
         # Seed
-        self.seed = hypparams["seed"]
+        self.seed = hypparams["seed"] if "seed" in hypparams else None
 
     def forward(self, x):
         pass
@@ -275,6 +282,16 @@ class BaseModel(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,  # metric_attribute="val_MAE"
         )
+
+    def predict(self, batch, batch_idx=None, dataloader_idx=None):
+
+        x, y = batch
+        if self.name == "SlowFast":
+            x = [x[:, :, ::6], x]  # first: slow (less frames) second: fast (more frames)
+        y_hat = self(x)
+        y_hat = y_hat.view(-1)
+
+        return torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1])))
 
     def on_train_start(self):
 
@@ -451,7 +468,7 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == "Perov_2d":
 
-            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d
+            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d
 
             if self.aug == "norm":
                 transform_train = normalize(self.train_mean, self.train_std)
@@ -461,6 +478,8 @@ class BaseModel(pl.LightningModule):
                 transform_train = aug1_2d(self.train_mean, self.train_std)
             elif self.aug == "aug2":
                 transform_train = aug2_2d(self.train_mean, self.train_std)
+            elif self.aug == "aug3":
+                transform_train = aug3_2d(self.train_mean, self.train_std)
 
             trainset = PerovskiteDataset2d(
                 data_dir=self.data_dir,
@@ -475,7 +494,7 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == "Perov_time_2d":
 
-            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d
+            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d
 
             if self.aug == "norm":
                 transform_train = normalize(self.train_mean, self.train_std)
@@ -485,6 +504,8 @@ class BaseModel(pl.LightningModule):
                 transform_train = aug1_2d(self.train_mean, self.train_std, time=True)
             elif self.aug == "aug2":
                 transform_train = aug2_2d(self.train_mean, self.train_std, time=True)
+            elif self.aug == "aug3":
+                transform_train = aug3_2d(self.train_mean, self.train_std, time=True)
 
             trainset = PerovskiteDataset2d_time(
                 data_dir=self.data_dir,
