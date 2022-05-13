@@ -103,6 +103,11 @@ if __name__ == "__main__":
         action="store_true",
         help="ignores the left substrate side where a border from backflowing fluid is visible",
     )
+    parser.add_argument(
+        "--weighted_sampler",
+        action="store_true",
+        help="Uses Weighted Random Sampler that gives low PCE values higher chance to be seen in training",
+    )
     parser.add_argument("--num_workers", help="Number of workers for loading the data", type=int, default=8)
     parser.add_argument(
         "--data_dir",

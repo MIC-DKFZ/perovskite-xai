@@ -4,6 +4,7 @@ from torch.utils.data import Dataset
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+from torch.utils.data import Dataset, WeightedRandomSampler
 
 
 class PerovskiteDataset1d(Dataset):
@@ -96,6 +97,19 @@ class PerovskiteDataset1d(Dataset):
 
         return self.scaler
 
+    def get_weighted_random_sampler(self):
+
+        # WeightedRandomSampler: https://pytorch.org/docs/stable/data.html#torch.utils.data.WeightedRandomSampler
+        _, bin_edges = np.histogram(self.unscaled_labels, bins=5)
+        final_bins = np.digitize(self.unscaled_labels, bin_edges)
+        label_weights = 1 - final_bins / (final_bins.max() + 1)
+
+        samples_weight = torch.from_numpy(label_weights)
+        samples_weight = samples_weight.double()
+        sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+
+        return sampler
+
 
 class PerovskiteDataset2d(Dataset):
     def __init__(
@@ -185,6 +199,19 @@ class PerovskiteDataset2d(Dataset):
         assert not self.val
 
         return self.scaler
+
+    def get_weighted_random_sampler(self):
+
+        # WeightedRandomSampler: https://pytorch.org/docs/stable/data.html#torch.utils.data.WeightedRandomSampler
+        _, bin_edges = np.histogram(self.unscaled_labels, bins=5)
+        final_bins = np.digitize(self.unscaled_labels, bin_edges)
+        label_weights = 1 - final_bins / (final_bins.max() + 1)
+
+        samples_weight = torch.from_numpy(label_weights)
+        samples_weight = samples_weight.double()
+        sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+
+        return sampler
 
 
 class PerovskiteDataset2d_time(Dataset):
@@ -279,6 +306,19 @@ class PerovskiteDataset2d_time(Dataset):
 
         return self.scaler
 
+    def get_weighted_random_sampler(self):
+
+        # WeightedRandomSampler: https://pytorch.org/docs/stable/data.html#torch.utils.data.WeightedRandomSampler
+        _, bin_edges = np.histogram(self.unscaled_labels, bins=5)
+        final_bins = np.digitize(self.unscaled_labels, bin_edges)
+        label_weights = 1 - final_bins / (final_bins.max() + 1)
+
+        samples_weight = torch.from_numpy(label_weights)
+        samples_weight = samples_weight.double()
+        sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+
+        return sampler
+
 
 class PerovskiteDataset3d(Dataset):
     def __init__(
@@ -368,3 +408,16 @@ class PerovskiteDataset3d(Dataset):
         assert not self.val
 
         return self.scaler
+
+    def get_weighted_random_sampler(self):
+
+        # WeightedRandomSampler: https://pytorch.org/docs/stable/data.html#torch.utils.data.WeightedRandomSampler
+        _, bin_edges = np.histogram(self.unscaled_labels, bins=5)
+        final_bins = np.digitize(self.unscaled_labels, bin_edges)
+        label_weights = 1 - final_bins / (final_bins.max() + 1)
+
+        samples_weight = torch.from_numpy(label_weights)
+        samples_weight = samples_weight.double()
+        sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+
+        return sampler

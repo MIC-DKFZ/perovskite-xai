@@ -84,6 +84,7 @@ class BaseModel(pl.LightningModule):
         self.dataset = hypparams["dataset"] if "dataset" in hypparams else None
         self.num_workers = hypparams["num_workers"] if "num_workers" in hypparams else None
         self.fold = hypparams["fold"] if "fold" in hypparams else None
+        self.weighted_sampler = hypparams["weighted_sampler"] if "weighted_sampler" in hypparams else None
 
         self.R_m = hypparams["R_m"] if "R_m" in hypparams else None
         self.R_nb = hypparams["R_nb"] if "R_nb" in hypparams else None
@@ -549,11 +550,12 @@ class BaseModel(pl.LightningModule):
         trainloader = DataLoader(
             trainset,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=True if not self.weighted_sampler else False,
             num_workers=self.num_workers,
             pin_memory=True,
             worker_init_fn=seed_worker,
             persistent_workers=True,
+            sampler=None if not self.weighted_sampler else trainset.get_weighted_random_sampler(),
         )
 
         return trainloader
