@@ -529,12 +529,14 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == "Perov_3d":
 
-            from data.augmentations.perov_3d import normalize, get_bg_3d
+            from data.augmentations.perov_3d import normalize, aug1_3d, aug2_3d
 
             if self.aug == "norm":
                 transform_train = normalize(self.train_mean, self.train_std)
             elif self.aug == "aug1":
-                transform_train = get_bg_3d(self.train_mean, self.train_std)
+                transform_train = aug1_3d(self.train_mean, self.train_std)
+            elif self.aug == "aug2":
+                transform_train = aug2_3d(self.train_mean, self.train_std)
 
             trainset = PerovskiteDataset3d(
                 data_dir=self.data_dir,
