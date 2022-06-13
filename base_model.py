@@ -22,7 +22,7 @@ from data.perovskite_dataset import (
     PerovskiteDataset3d,
     PerovskiteDataset2d_time,
 )
-from torchmetrics import F1, Precision, Recall, Accuracy, MeanAbsoluteError, MeanSquaredError
+from torchmetrics import F1Score as F1, Precision, Recall, Accuracy, MeanAbsoluteError, MeanSquaredError
 
 
 class BaseModel(pl.LightningModule):
