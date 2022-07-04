@@ -89,6 +89,8 @@ class BaseModel(pl.LightningModule):
         self.R_m = hypparams["R_m"] if "R_m" in hypparams else None
         self.R_nb = hypparams["R_nb"] if "R_nb" in hypparams else None
 
+        self.val_preds = []
+
         if self.dims == 1:
             self.train_mean, self.train_std = PerovskiteDataset1d(
                 data_dir=self.data_dir,
@@ -293,6 +295,25 @@ class BaseModel(pl.LightningModule):
         y_hat = y_hat.view(-1)
 
         return torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1])))
+
+    def test_step(self, batch, batch_idx):
+
+        x, y = batch
+
+        if self.name == "SlowFast":
+            x = [x[:, :, ::6], x]  # first: slow (less frames) second: fast (more frames)
+        y_hat = self(x)
+
+        # only if num_classes==1
+        y_hat = y_hat.view(-1)
+
+        denormalized_y = self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+        denormalized_y_hat = self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+
+        self.val_preds.append(zip(denormalized_y, denormalized_y_hat))
+        # print("in func", denormalized_y_hat)
+
+        # return denormalized_y, denormalized_y_hat
 
     def on_train_start(self):
 
@@ -563,6 +584,85 @@ class BaseModel(pl.LightningModule):
         return trainloader
 
     def val_dataloader(self):
+
+        if not self.use_all_folds:
+
+            if self.dataset == "Perov_1d":
+
+                from data.augmentations.perov_1d import normalize
+
+                valset = PerovskiteDataset1d(
+                    data_dir=self.data_dir,
+                    transform=normalize(self.train_mean, self.train_std),
+                    fold=self.fold,
+                    split="train",
+                    label="PCE_mean",
+                    val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
+                )
+
+            elif self.dataset == "Perov_2d":
+
+                from data.augmentations.perov_2d import normalize
+
+                valset = PerovskiteDataset2d(
+                    data_dir=self.data_dir,
+                    transform=normalize(self.train_mean, self.train_std),
+                    fold=self.fold,
+                    split="train",
+                    label="PCE_mean",
+                    val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
+                )
+
+            elif self.dataset == "Perov_time_2d":
+
+                from data.augmentations.perov_2d import normalize
+
+                valset = PerovskiteDataset2d_time(
+                    data_dir=self.data_dir,
+                    transform=normalize(self.train_mean, self.train_std),
+                    fold=self.fold,
+                    split="train",
+                    label="PCE_mean",
+                    val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
+                )
+
+            elif self.dataset == "Perov_3d":
+
+                from data.augmentations.perov_3d import normalize
+
+                valset = PerovskiteDataset3d(
+                    data_dir=self.data_dir,
+                    transform=normalize(self.train_mean, self.train_std),
+                    fold=self.fold,
+                    split="train",
+                    label="PCE_mean",
+                    val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
+                )
+
+            valloader = DataLoader(
+                valset,
+                batch_size=self.batch_size,
+                shuffle=False,
+                num_workers=self.num_workers,
+                pin_memory=True,
+                worker_init_fn=seed_worker,
+                persistent_workers=True,
+            )
+
+            return valloader
+
+        else:
+            return None
+
+    def test_dataloader(self):
 
         if not self.use_all_folds:
 

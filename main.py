@@ -3,6 +3,8 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 import numpy as np
 import os
+import itertools
+import matplotlib.pyplot as plt
 from uuid import uuid4
 import mlflow.pytorch
 from mlflow.tracking import MlflowClient
@@ -169,6 +171,7 @@ if __name__ == "__main__":
     params["experiment_id"] = uuid4()
 
     validation_metrics = []
+    validation_preds = []
 
     fold_range = range(5) if not args.use_all_folds else range(1)
 
@@ -235,6 +238,9 @@ if __name__ == "__main__":
         with mlflow.start_run(run_name=run_name) as run:
             mlflow.log_params(params_to_log)
             trainer.fit(model)
+            trainer.test(model)
+            # print(list(*model.val_preds))
+            validation_preds.append(list(*model.val_preds))
 
         if not args.use_all_folds:
             train_MSE = mlflow.get_run(run.info.run_id).data.metrics["train_MSE"]
@@ -242,6 +248,20 @@ if __name__ == "__main__":
             train_MAE = mlflow.get_run(run.info.run_id).data.metrics["train_MAE"]
             val_MAE = mlflow.get_run(run.info.run_id).data.metrics["val_MAE"]
             validation_metrics.append((run.info.run_id, (train_MSE, val_MSE, train_MAE, val_MAE)))
+
+    val_gt, val_pred = np.hsplit(np.array(list(itertools.chain(*validation_preds))).squeeze(), 2)
+
+    scatterplot_dir = os.path.join(selected_exp_dir, "scatterplots/{}".format(str(params["experiment_id"])))
+    os.makedirs(scatterplot_dir, exist_ok=True)
+
+    plt.figure(figsize=(10, 7))
+    plt.scatter(val_gt, val_pred)
+    plt.xlabel("Ground Truth")
+    plt.ylabel("Predicted")
+
+    save_path = os.path.join(scatterplot_dir, "scatterplot.png")
+    plt.tight_layout()
+    plt.savefig(save_path)
 
     if not args.use_all_folds:
         ids, scores = zip(*validation_metrics)
@@ -254,3 +274,4 @@ if __name__ == "__main__":
             client.log_metric(run_id=run_id, key="CV_avg_val_MSE", value=avg_val_MSE)
             client.log_metric(run_id=run_id, key="CV_avg_train_MAE", value=avg_train_MAE)
             client.log_metric(run_id=run_id, key="CV_avg_val_MAE", value=avg_val_MAE)
+            client.log_artifact(run_id=run_id, local_path=save_path, artifact_path="scatterplot")
