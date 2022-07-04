@@ -156,8 +156,8 @@ if __name__ == "__main__":
     selected_exp_dir = os.path.join(exp_dir, "Perovskite_preprocessed")
 
     # set MLflow and checkpoint directories
-    chpt_dir = os.path.join(selected_exp_dir, "checkpoints")
-    mlrun_dir = os.path.join(selected_exp_dir, "mlruns")
+    chpt_dir = os.path.abspath(os.path.join(selected_exp_dir, "checkpoints"))
+    mlrun_dir = os.path.abspath(os.path.join(selected_exp_dir, "mlruns"))
 
     # check for misconfigurations in the parameters
     detect_misconfigurations(model_name, args)
