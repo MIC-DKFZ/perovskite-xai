@@ -8,3 +8,4 @@ aug_vis*.ipynb
 __pycache__
 .git
 .ipynb_checkpoints
+preprocessed
