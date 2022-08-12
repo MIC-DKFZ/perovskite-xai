@@ -99,6 +99,8 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=None, help="If a seed is specified training will be deterministic and slower")
     # Data and experiment directories
     parser.add_argument("--data", help="Name of the dataset", default="Perov_2d")
+    parser.add_argument("--target", default="PCE_mean")
+    parser.add_argument("--norm_target", action="store_true")
     parser.add_argument("--use_all_folds", action="store_true")
     parser.add_argument(
         "--no_border",
@@ -231,6 +233,7 @@ if __name__ == "__main__":
 
         # set MLflow experiment name
         exp_name = args.data if not args.no_border else args.data + "_noBorder"
+        exp_name = args.target + "_" + exp_name
         mlflow.set_experiment(exp_name)  # creates exp if it does not exist yet
         run_name = f"{args.data}-{model_name}"
 

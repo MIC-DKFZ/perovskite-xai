@@ -60,6 +60,7 @@ if __name__ == "__main__":
 
             print("Loaded")
             model.eval()
+            model.to("cuda")
 
             dataset = PerovskiteDataset1d(
                 data_dir,
@@ -110,6 +111,7 @@ if __name__ == "__main__":
 
             print("Loaded")
             model.eval()
+            model.to("cuda")
 
             dataset = PerovskiteDataset1d(
                 data_dir,
@@ -163,6 +165,7 @@ if __name__ == "__main__":
 
             print("Loaded")
             model.eval()
+            model.to("cuda")
 
             dataset = PerovskiteDataset2d(
                 data_dir,
@@ -216,6 +219,7 @@ if __name__ == "__main__":
 
             print("Loaded")
             model.eval()
+            model.to("cuda")
 
             dataset = PerovskiteDataset2d_time(
                 data_dir,
@@ -267,6 +271,7 @@ if __name__ == "__main__":
 
             print("Loaded")
             model.eval()
+            model.to("cuda")
 
             dataset = PerovskiteDataset3d(
                 data_dir,

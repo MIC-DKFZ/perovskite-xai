@@ -9,7 +9,16 @@ from torch.utils.data import Dataset, WeightedRandomSampler
 
 class PerovskiteDataset1d(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
+        return_unscaled=False,
     ):
 
         self.transform = transform
@@ -41,7 +50,7 @@ class PerovskiteDataset1d(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            if patch["patch_loc"] < 70 or not no_border:
+            if (patch["patch_loc"] < 70 or not no_border) and not pd.isna(patch[label]):
 
                 # get image data (1D: mean intensity of images over time)
                 video = np.load(
@@ -59,9 +68,14 @@ class PerovskiteDataset1d(Dataset):
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
         self.videos = torch.from_numpy((np.array(videos) / 2**16).astype(np.float32))
 
-        if not self.scaler:
-            self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        if not return_unscaled:
+            if not self.scaler:
+                self.scaler = self.fit_scaler(self.unscaled_labels)
+
+            self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+
+        else:
+            self.labels = self.unscaled_labels
 
     def __getitem__(self, idx):
 
@@ -113,7 +127,16 @@ class PerovskiteDataset1d(Dataset):
 
 class PerovskiteDataset2d(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
+        return_unscaled=False,
     ):
 
         self.transform = transform
@@ -145,7 +168,7 @@ class PerovskiteDataset2d(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            if patch["patch_loc"] < 70 or not no_border:
+            if (patch["patch_loc"] < 70 or not no_border) and not pd.isna(patch[label]):
 
                 maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
 
@@ -162,9 +185,14 @@ class PerovskiteDataset2d(Dataset):
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
         self.videos = (np.array(videos) / 2**16).astype(np.float32)
 
-        if not self.scaler:
-            self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        if not return_unscaled:
+            if not self.scaler:
+                self.scaler = self.fit_scaler(self.unscaled_labels)
+
+            self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+
+        else:
+            self.labels = self.unscaled_labels
 
     def __getitem__(self, idx):
 
@@ -216,7 +244,16 @@ class PerovskiteDataset2d(Dataset):
 
 class PerovskiteDataset2d_time(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
+        return_unscaled=False,
     ):
 
         self.transform = transform
@@ -248,7 +285,7 @@ class PerovskiteDataset2d_time(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            if patch["patch_loc"] < 70 or not no_border:
+            if (patch["patch_loc"] < 70 or not no_border) and not pd.isna(patch[label]):
 
                 maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
 
@@ -268,9 +305,14 @@ class PerovskiteDataset2d_time(Dataset):
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
         self.videos = (np.array(videos) / 2**16).astype(np.float32)
 
-        if not self.scaler:
-            self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        if not return_unscaled:
+            if not self.scaler:
+                self.scaler = self.fit_scaler(self.unscaled_labels)
+
+            self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+
+        else:
+            self.labels = self.unscaled_labels
 
     def __getitem__(self, idx):
 
@@ -322,7 +364,16 @@ class PerovskiteDataset2d_time(Dataset):
 
 class PerovskiteDataset3d(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
+        return_unscaled=False,
     ):
 
         self.transform = transform
@@ -354,7 +405,7 @@ class PerovskiteDataset3d(Dataset):
         lb = []
         for i, patch in df.iterrows():
 
-            if patch["patch_loc"] < 70 or not no_border:
+            if (patch["patch_loc"] < 70 or not no_border) and not pd.isna(patch[label]):
 
                 # get image data (3D)
                 video = np.load(
@@ -369,9 +420,14 @@ class PerovskiteDataset3d(Dataset):
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
         self.videos = torch.from_numpy((np.array(videos) / 2**16).astype(np.float32))
 
-        if not self.scaler:
-            self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        if not return_unscaled:
+            if not self.scaler:
+                self.scaler = self.fit_scaler(self.unscaled_labels)
+
+            self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+
+        else:
+            self.labels = self.unscaled_labels
 
     def __getitem__(self, idx):
 
@@ -380,8 +436,6 @@ class PerovskiteDataset3d(Dataset):
 
         if self.transform:
             x = self.transform(x)
-            # TODO permute, torch 3d conv expects n, channel, dim, h, w
-            # x = x.transpose((1, 0, 2, 3))
 
         return x, y
 

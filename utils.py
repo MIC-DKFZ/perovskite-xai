@@ -167,6 +167,8 @@ def get_params(selected_data_dir, model_name, args, seed):
         "use_all_folds": args.use_all_folds,
         "no_border": args.no_border,
         "weighted_sampler": args.weighted_sampler,
+        "target": args.target,
+        "norm_target": args.norm_target,
     }
 
     return params
@@ -209,6 +211,8 @@ def get_params_to_log(params, model_name):
         "use_all_folds": params["use_all_folds"],
         "no_border": params["no_border"],
         "weighted_sampler": params["weighted_sampler"],
+        "target": params["target"],
+        "target_normalized": params["norm_target"],
     }
 
     return params_to_log
