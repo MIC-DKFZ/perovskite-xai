@@ -22,7 +22,14 @@ from data.perovskite_dataset import (
     PerovskiteDataset3d,
     PerovskiteDataset2d_time,
 )
-from torchmetrics import F1Score as F1, Precision, Recall, Accuracy, MeanAbsoluteError, MeanSquaredError
+from torchmetrics import (
+    F1Score as F1,
+    Precision,
+    Recall,
+    Accuracy,
+    MeanAbsoluteError,
+    MeanSquaredError,
+)
 
 
 class BaseModel(pl.LightningModule):
@@ -53,11 +60,15 @@ class BaseModel(pl.LightningModule):
         # Training Args
         self.batch_size = hypparams["batch_size"] if "batch_size" in hypparams else None
         self.lr = hypparams["lr"] if "lr" in hypparams else None
-        self.weight_decay = hypparams["weight_decay"] if "weight_decay" in hypparams else None
+        self.weight_decay = (
+            hypparams["weight_decay"] if "weight_decay" in hypparams else None
+        )
         self.optimizer = hypparams["optimizer"] if "optimizer" in hypparams else None
         self.nesterov = hypparams["nesterov"] if "nesterov" in hypparams else None
         self.sam = hypparams["sam"] if "sam" in hypparams else None
-        self.adaptive_sam = hypparams["adaptive_sam"] if "adaptive_sam" in hypparams else None
+        self.adaptive_sam = (
+            hypparams["adaptive_sam"] if "adaptive_sam" in hypparams else None
+        )
         self.scheduler = hypparams["scheduler"] if "scheduler" in hypparams else None
         self.T_max = hypparams["T_max"] if "T_max" in hypparams else None
         self.warmstart = hypparams["warmstart"] if "warmstart" in hypparams else None
@@ -66,25 +77,49 @@ class BaseModel(pl.LightningModule):
         # Regularization techniques
         self.aug = hypparams["augmentation"] if "augmentation" in hypparams else None
         self.mixup = hypparams["mixup"] if "mixup" in hypparams else None
-        self.mixup_alpha = hypparams["mixup_alpha"] if "mixup_alpha" in hypparams else None  # 0.2
-        self.label_smoothing = hypparams["label_smoothing"] if "label_smoothing" in hypparams else None  # 0.1
+        self.mixup_alpha = (
+            hypparams["mixup_alpha"] if "mixup_alpha" in hypparams else None
+        )  # 0.2
+        self.label_smoothing = (
+            hypparams["label_smoothing"] if "label_smoothing" in hypparams else None
+        )  # 0.1
         self.stochastic_depth = (
             hypparams["stochastic_depth"] if "stochastic_depth" in hypparams else None
         )  # 0.1 (with higher resolution maybe 0.2)
-        self.resnet_dropout = hypparams["resnet_dropout"] if "resnet_dropout" in hypparams else None  # 0.5
-        self.se = hypparams["squeeze_excitation"] if "squeeze_excitation" in hypparams else None
-        self.apply_shakedrop = hypparams["shakedrop"] if "shakedrop" in hypparams else None
-        self.undecay_norm = hypparams["undecay_norm"] if "undecay_norm" in hypparams else None
-        self.zero_init_residual = hypparams["zero_init_residual"] if "zero_init_residual" in hypparams else None
+        self.resnet_dropout = (
+            hypparams["resnet_dropout"] if "resnet_dropout" in hypparams else None
+        )  # 0.5
+        self.se = (
+            hypparams["squeeze_excitation"]
+            if "squeeze_excitation" in hypparams
+            else None
+        )
+        self.apply_shakedrop = (
+            hypparams["shakedrop"] if "shakedrop" in hypparams else None
+        )
+        self.undecay_norm = (
+            hypparams["undecay_norm"] if "undecay_norm" in hypparams else None
+        )
+        self.zero_init_residual = (
+            hypparams["zero_init_residual"]
+            if "zero_init_residual" in hypparams
+            else None
+        )
 
         # Data and Dataloading
 
-        self.use_all_folds = hypparams["use_all_folds"] if "use_all_folds" in hypparams else None
+        self.use_all_folds = (
+            hypparams["use_all_folds"] if "use_all_folds" in hypparams else None
+        )
 
         self.dataset = hypparams["dataset"] if "dataset" in hypparams else None
-        self.num_workers = hypparams["num_workers"] if "num_workers" in hypparams else None
+        self.num_workers = (
+            hypparams["num_workers"] if "num_workers" in hypparams else None
+        )
         self.fold = hypparams["fold"] if "fold" in hypparams else None
-        self.weighted_sampler = hypparams["weighted_sampler"] if "weighted_sampler" in hypparams else None
+        self.weighted_sampler = (
+            hypparams["weighted_sampler"] if "weighted_sampler" in hypparams else None
+        )
 
         self.R_m = hypparams["R_m"] if "R_m" in hypparams else None
         self.R_nb = hypparams["R_nb"] if "R_nb" in hypparams else None
@@ -191,7 +226,10 @@ class BaseModel(pl.LightningModule):
 
         x, y = batch
         if self.name == "SlowFast":
-            x = [x[:, :, ::6], x]  # first: slow (less frames) second: fast (more frames)
+            x = [
+                x[:, :, ::6],
+                x,
+            ]  # first: slow (less frames) second: fast (more frames)
         y_hat = self(x)
         # print(y_hat)
 
@@ -217,14 +255,24 @@ class BaseModel(pl.LightningModule):
         with torch.no_grad():
             # self.train_MSE(y_hat * 20, y * 20)
             self.train_MSE(
-                torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))),
-                torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))),
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+                ),
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+                ),
             )
-            self.log("train_MSE", self.train_MSE, on_step=False, on_epoch=True, prog_bar=True)
+            self.log(
+                "train_MSE", self.train_MSE, on_step=False, on_epoch=True, prog_bar=True
+            )
             # self.train_MAE(y_hat * 20, y * 20)
             self.train_MAE(
-                torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))),
-                torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))),
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+                ),
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+                ),
             )
             self.log(
                 "train_MAE",
@@ -247,7 +295,10 @@ class BaseModel(pl.LightningModule):
         # print(x.requires_grad)
         # print(x.shape)
         if self.name == "SlowFast":
-            x = [x[:, :, ::6], x]  # first: slow (less frames) second: fast (more frames)
+            x = [
+                x[:, :, ::6],
+                x,
+            ]  # first: slow (less frames) second: fast (more frames)
         y_hat = self(x)
         # print(y_hat)
 
@@ -269,13 +320,17 @@ class BaseModel(pl.LightningModule):
         self.log('val_acc', self.val_acc, on_step=False, on_epoch=True, prog_bar=True)"""
         # self.val_MSE(y_hat * 20, y * 20)
         self.val_MSE(
-            torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))),
+            torch.from_numpy(
+                self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+            ),
             torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))),
         )
         self.log("val_MSE", self.val_MSE, on_step=False, on_epoch=True, prog_bar=True)
         # self.val_MAE(y_hat * 20, y * 20)
         self.val_MAE(
-            torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))),
+            torch.from_numpy(
+                self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+            ),
             torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))),
         )
         self.log(
@@ -289,19 +344,23 @@ class BaseModel(pl.LightningModule):
     def predict(self, batch, batch_idx=None, dataloader_idx=None):
 
         x, y = batch
-        if self.name == "SlowFast":
-            x = [x[:, :, ::6], x]  # first: slow (less frames) second: fast (more frames)
+
         y_hat = self(x)
         y_hat = y_hat.view(-1)
 
-        return torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1])))
+        return torch.from_numpy(
+            self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+        )
 
     def test_step(self, batch, batch_idx):
 
         x, y = batch
 
         if self.name == "SlowFast":
-            x = [x[:, :, ::6], x]  # first: slow (less frames) second: fast (more frames)
+            x = [
+                x[:, :, ::6],
+                x,
+            ]  # first: slow (less frames) second: fast (more frames)
         y_hat = self(x)
 
         # only if num_classes==1
@@ -377,23 +436,38 @@ class BaseModel(pl.LightningModule):
                         norm_params += [p]
                     else:
                         model_params += [p]
-            params = [{"params": model_params}, {"params": norm_params, "weight_decay": 0}]
+            params = [
+                {"params": model_params},
+                {"params": norm_params, "weight_decay": 0},
+            ]
         else:
             params = self.parameters()
 
         if not self.sam:
             if self.optimizer == "SGD":
                 optimizer = torch.optim.SGD(
-                    params, lr=self.lr, momentum=0.9, weight_decay=self.weight_decay, nesterov=self.nesterov
+                    params,
+                    lr=self.lr,
+                    momentum=0.9,
+                    weight_decay=self.weight_decay,
+                    nesterov=self.nesterov,
                 )
             elif self.optimizer == "Adam":
-                optimizer = torch.optim.Adam(params, lr=self.lr, weight_decay=self.weight_decay)
+                optimizer = torch.optim.Adam(
+                    params, lr=self.lr, weight_decay=self.weight_decay
+                )
             elif self.optimizer == "AdamW":
-                optimizer = torch.optim.AdamW(params, lr=self.lr, weight_decay=self.weight_decay)
+                optimizer = torch.optim.AdamW(
+                    params, lr=self.lr, weight_decay=self.weight_decay
+                )
             elif self.optimizer == "Rmsprop":
-                optimizer = RMSpropTF(params, lr=self.lr, weight_decay=self.weight_decay)
+                optimizer = RMSpropTF(
+                    params, lr=self.lr, weight_decay=self.weight_decay
+                )
             elif self.optimizer == "Madgrad":
-                optimizer = MADGRAD(params, lr=self.lr, momentum=0.9, weight_decay=self.weight_decay)
+                optimizer = MADGRAD(
+                    params, lr=self.lr, momentum=0.9, weight_decay=self.weight_decay
+                )
 
         else:
             pass
@@ -425,15 +499,23 @@ class BaseModel(pl.LightningModule):
             return [optimizer]
         else:
             if self.scheduler == "CosineAnneal" and self.warmstart == 0:
-                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.T_max)
+                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                    optimizer, T_max=self.T_max
+                )
             elif self.scheduler == "CosineAnneal" and self.warmstart > 0:
-                scheduler = CosineAnnealingLR_Warmstart(optimizer, T_max=self.T_max, warmstart=self.warmstart)
+                scheduler = CosineAnnealingLR_Warmstart(
+                    optimizer, T_max=self.T_max, warmstart=self.warmstart
+                )
             elif self.scheduler == "Step":
                 # decays every 1/4 epochs
-                scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=self.epochs // 4, gamma=0.1)
+                scheduler = torch.optim.lr_scheduler.StepLR(
+                    optimizer, step_size=self.epochs // 4, gamma=0.1
+                )
             elif self.scheduler == "MultiStep":
                 # decays lr with 0.1 after half of epochs and 3/4 of epochs
-                scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, [self.epochs // 2, self.epochs * 3 // 4])
+                scheduler = torch.optim.lr_scheduler.MultiStepLR(
+                    optimizer, [self.epochs // 2, self.epochs * 3 // 4]
+                )
 
             return [optimizer], [scheduler]
 
@@ -490,7 +572,15 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == "Perov_2d":
 
-            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d, aug4_2d, aug5_2d
+            from data.augmentations.perov_2d import (
+                normalize,
+                baseline_2d,
+                aug1_2d,
+                aug2_2d,
+                aug3_2d,
+                aug4_2d,
+                aug5_2d,
+            )
 
             if self.aug == "norm":
                 transform_train = normalize(self.train_mean, self.train_std)
@@ -520,12 +610,22 @@ class BaseModel(pl.LightningModule):
 
         elif self.dataset == "Perov_time_2d":
 
-            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d, aug4_2d, aug5_2d
+            from data.augmentations.perov_2d import (
+                normalize,
+                baseline_2d,
+                aug1_2d,
+                aug2_2d,
+                aug3_2d,
+                aug4_2d,
+                aug5_2d,
+            )
 
             if self.aug == "norm":
                 transform_train = normalize(self.train_mean, self.train_std)
             elif self.aug == "baseline":
-                transform_train = baseline_2d(self.train_mean, self.train_std, time=True)
+                transform_train = baseline_2d(
+                    self.train_mean, self.train_std, time=True
+                )
             elif self.aug == "aug1":
                 transform_train = aug1_2d(self.train_mean, self.train_std, time=True)
             elif self.aug == "aug2":
@@ -578,7 +678,9 @@ class BaseModel(pl.LightningModule):
             pin_memory=True,
             worker_init_fn=seed_worker,
             persistent_workers=True,
-            sampler=None if not self.weighted_sampler else trainset.get_weighted_random_sampler(),
+            sampler=None
+            if not self.weighted_sampler
+            else trainset.get_weighted_random_sampler(),
         )
 
         return trainloader
@@ -773,7 +875,9 @@ class TimerCallback(Callback):
             else:
                 self.end.record()
                 torch.cuda.synchronize()
-                elapsed_time = self.start.elapsed_time(self.end) / 1000  # transform to seconds
+                elapsed_time = (
+                    self.start.elapsed_time(self.end) / 1000
+                )  # transform to seconds
             # print(elapsed_time)
             self.epoch_times.append(elapsed_time)
         if trainer.current_epoch == self.epochs - 1:
@@ -788,7 +892,7 @@ def seed_worker(worker_id):
     to fix https://tanelp.github.io/posts/a-bug-that-plagues-thousands-of-open-source-ml-projects/
     ensures different random numbers each batch with each worker every epoch while keeping reproducibility
     """
-    worker_seed = torch.initial_seed() % 2**32
+    worker_seed = torch.initial_seed() % 2 ** 32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 
@@ -799,26 +903,34 @@ class CosineAnnealingLR_Warmstart(_LRScheduler):
     for the amount of specified warmup epochs as described in https://arxiv.org/pdf/1706.02677.pdf
     """
 
-    def __init__(self, optimizer, T_max, eta_min=0, last_epoch=-1, verbose=False, warmstart=0):
+    def __init__(
+        self, optimizer, T_max, eta_min=0, last_epoch=-1, verbose=False, warmstart=0
+    ):
 
         self.T_max = T_max - warmstart  # do not consider warmstart epochs for T_max
         self.eta_min = eta_min
         self.warmstart = warmstart
         self.T = 0
 
-        super(CosineAnnealingLR_Warmstart, self).__init__(optimizer, last_epoch, verbose)
+        super(CosineAnnealingLR_Warmstart, self).__init__(
+            optimizer, last_epoch, verbose
+        )
 
     def get_lr(self):
         if not self._get_lr_called_within_step:
             warnings.warn(
-                "To get the last learning rate computed by the scheduler, please use `get_last_lr()`.", UserWarning
+                "To get the last learning rate computed by the scheduler, please use `get_last_lr()`.",
+                UserWarning,
             )
 
         # Warmstart
         if self.last_epoch < self.warmstart:
 
             addrates = [(lr / (self.warmstart + 1)) for lr in self.base_lrs]
-            updated_lr = [addrates[i] * (self.last_epoch + 1) for i, group in enumerate(self.optimizer.param_groups)]
+            updated_lr = [
+                addrates[i] * (self.last_epoch + 1)
+                for i, group in enumerate(self.optimizer.param_groups)
+            ]
 
             return updated_lr
 
@@ -830,8 +942,13 @@ class CosineAnnealingLR_Warmstart(_LRScheduler):
             elif (self.T - 1 - self.T_max) % (2 * self.T_max) == 0:
 
                 updated_lr = [
-                    group["lr"] + (base_lr - self.eta_min) * (1 - math.cos(math.pi / self.T_max)) / 2
-                    for base_lr, group in zip(self.base_lrs, self.optimizer.param_groups)
+                    group["lr"]
+                    + (base_lr - self.eta_min)
+                    * (1 - math.cos(math.pi / self.T_max))
+                    / 2
+                    for base_lr, group in zip(
+                        self.base_lrs, self.optimizer.param_groups
+                    )
                 ]
 
                 self.T += 1
