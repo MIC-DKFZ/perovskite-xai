@@ -3,6 +3,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 import numpy as np
 import os
+import shutil
 import itertools
 import re
 import yaml
@@ -293,3 +294,7 @@ if __name__ == "__main__":
                 meta_info["artifact_uri"] = adapted_relative_path
             with open(meta_file, "w") as f:
                 yaml.dump(meta_info, f)
+
+    # remove local scatterplot_dir
+    print(scatterplot_dir)
+    shutil.rmtree(scatterplot_dir)
