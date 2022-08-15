@@ -4,6 +4,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 import numpy as np
 import os
 import itertools
+import re
+import yaml
 import matplotlib.pyplot as plt
 from uuid import uuid4
 import mlflow.pytorch
@@ -250,7 +252,9 @@ if __name__ == "__main__":
             val_MSE = mlflow.get_run(run.info.run_id).data.metrics["val_MSE"]
             train_MAE = mlflow.get_run(run.info.run_id).data.metrics["train_MAE"]
             val_MAE = mlflow.get_run(run.info.run_id).data.metrics["val_MAE"]
-            validation_metrics.append((run.info.run_id, (train_MSE, val_MSE, train_MAE, val_MAE)))
+            validation_metrics.append(
+                (run.info.run_id, run.info.artifact_uri, (train_MSE, val_MSE, train_MAE, val_MAE))
+            )
 
     val_gt, val_pred = np.hsplit(np.array(list(itertools.chain(*validation_preds))).squeeze(), 2)
 
@@ -267,7 +271,7 @@ if __name__ == "__main__":
     plt.savefig(save_path)
 
     if not args.use_all_folds:
-        ids, scores = zip(*validation_metrics)
+        ids, artifact_uris, scores = zip(*validation_metrics)
         avg_train_MSE, avg_val_MSE, avg_train_MAE, avg_val_MAE = np.mean(scores, axis=0)
         print(avg_val_MSE, avg_val_MAE)
 
@@ -278,3 +282,14 @@ if __name__ == "__main__":
             client.log_metric(run_id=run_id, key="CV_avg_train_MAE", value=avg_train_MAE)
             client.log_metric(run_id=run_id, key="CV_avg_val_MAE", value=avg_val_MAE)
             client.log_artifact(run_id=run_id, local_path=save_path, artifact_path="scatterplot")
+
+        # adapt path in mlflow meta so that artifacts are still shown when logs are copied to another location
+        for artifact_uri in artifact_uris:
+            adapted_relative_path = "." + re.sub(".*?(?=/mlruns/)", "", artifact_uri)
+
+            meta_file = artifact_uri.replace("artifacts", "meta.yaml")
+            with open(meta_file, "r") as f:
+                meta_info = yaml.load(f, Loader=yaml.FullLoader)
+                meta_info["artifact_uri"] = adapted_relative_path
+            with open(meta_file, "w") as f:
+                yaml.dump(meta_info, f)
