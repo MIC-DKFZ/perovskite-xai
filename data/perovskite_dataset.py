@@ -9,7 +9,15 @@ from torch.utils.data import Dataset, WeightedRandomSampler
 
 class PerovskiteDataset1d(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
     ):
 
         self.transform = transform
@@ -32,7 +40,9 @@ class PerovskiteDataset1d(Dataset):
 
             # fold
             fold_dir = os.path.join(base_dir, "cv_splits_5fold/fold{}".format(fold))
-            df = pd.read_csv(os.path.join(fold_dir, "{}.csv".format("val" if val else "train")))
+            df = pd.read_csv(
+                os.path.join(fold_dir, "{}.csv".format("val" if val else "train"))
+            )
 
         else:
             df = pd.read_csv(os.path.join(base_dir, "labels.csv"))
@@ -45,7 +55,10 @@ class PerovskiteDataset1d(Dataset):
 
                 # get image data (1D: mean intensity of images over time)
                 video = np.load(
-                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    os.path.join(
+                        base_dir,
+                        "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"]),
+                    ),
                     mmap_mode="r",
                 ).mean(
                     axis=(2, 3)
@@ -57,11 +70,13 @@ class PerovskiteDataset1d(Dataset):
 
         # self.labels = (np.array(lb) / 20).astype(np.float32)
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
-        self.videos = torch.from_numpy((np.array(videos) / 2**16).astype(np.float32))
+        self.videos = torch.from_numpy((np.array(videos) / 2 ** 16).astype(np.float32))
 
         if not self.scaler:
             self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        self.labels = self.scaler.transform(
+            self.unscaled_labels.reshape([-1, 1])
+        ).reshape(-1)
 
     def __getitem__(self, idx):
 
@@ -113,7 +128,15 @@ class PerovskiteDataset1d(Dataset):
 
 class PerovskiteDataset2d(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
     ):
 
         self.transform = transform
@@ -136,7 +159,9 @@ class PerovskiteDataset2d(Dataset):
 
             # fold
             fold_dir = os.path.join(base_dir, "cv_splits_5fold/fold{}".format(fold))
-            df = pd.read_csv(os.path.join(fold_dir, "{}.csv".format("val" if val else "train")))
+            df = pd.read_csv(
+                os.path.join(fold_dir, "{}.csv".format("val" if val else "train"))
+            )
 
         else:
             df = pd.read_csv(os.path.join(base_dir, "labels.csv"))
@@ -147,11 +172,16 @@ class PerovskiteDataset2d(Dataset):
 
             if patch["patch_loc"] < 70 or not no_border:
 
-                maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
+                maxPL = np.fromstring(
+                    patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" "
+                )[0]
 
                 # get image data (2D: for each video select the frame that has the highest PL)
                 video = np.load(
-                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    os.path.join(
+                        base_dir,
+                        "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"]),
+                    ),
                     mmap_mode="r",
                 )[maxPL]
                 videos.append(video.transpose(1, 2, 0))
@@ -160,11 +190,13 @@ class PerovskiteDataset2d(Dataset):
                 lb.append(patch[label])
 
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
-        self.videos = (np.array(videos) / 2**16).astype(np.float32)
+        self.videos = (np.array(videos) / 2 ** 16).astype(np.float32)
 
         if not self.scaler:
             self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        self.labels = self.scaler.transform(
+            self.unscaled_labels.reshape([-1, 1])
+        ).reshape(-1)
 
     def __getitem__(self, idx):
 
@@ -216,7 +248,15 @@ class PerovskiteDataset2d(Dataset):
 
 class PerovskiteDataset2d_time(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
     ):
 
         self.transform = transform
@@ -239,7 +279,9 @@ class PerovskiteDataset2d_time(Dataset):
 
             # fold
             fold_dir = os.path.join(base_dir, "cv_splits_5fold/fold{}".format(fold))
-            df = pd.read_csv(os.path.join(fold_dir, "{}.csv".format("val" if val else "train")))
+            df = pd.read_csv(
+                os.path.join(fold_dir, "{}.csv".format("val" if val else "train"))
+            )
 
         else:
             df = pd.read_csv(os.path.join(base_dir, "labels.csv"))
@@ -250,12 +292,17 @@ class PerovskiteDataset2d_time(Dataset):
 
             if patch["patch_loc"] < 70 or not no_border:
 
-                maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
+                maxPL = np.fromstring(
+                    patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" "
+                )[0]
 
                 # get image data (2D_time: take x and time instead of x and y, aggregate all y's by mean)
                 # time, channel, height, width
                 video = np.load(
-                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    os.path.join(
+                        base_dir,
+                        "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"]),
+                    ),
                     mmap_mode="r",
                 )[::10].mean(
                     axis=3
@@ -266,11 +313,13 @@ class PerovskiteDataset2d_time(Dataset):
                 lb.append(patch[label])
 
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
-        self.videos = (np.array(videos) / 2**16).astype(np.float32)
+        self.videos = (np.array(videos) / 2 ** 16).astype(np.float32)
 
         if not self.scaler:
             self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        self.labels = self.scaler.transform(
+            self.unscaled_labels.reshape([-1, 1])
+        ).reshape(-1)
 
     def __getitem__(self, idx):
 
@@ -322,7 +371,15 @@ class PerovskiteDataset2d_time(Dataset):
 
 class PerovskiteDataset3d(Dataset):
     def __init__(
-        self, data_dir, transform, fold=None, split="train", val=False, label="PCE_mean", scaler=None, no_border=False
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
     ):
 
         self.transform = transform
@@ -345,7 +402,9 @@ class PerovskiteDataset3d(Dataset):
 
             # fold
             fold_dir = os.path.join(base_dir, "cv_splits_5fold/fold{}".format(fold))
-            df = pd.read_csv(os.path.join(fold_dir, "{}.csv".format("val" if val else "train")))
+            df = pd.read_csv(
+                os.path.join(fold_dir, "{}.csv".format("val" if val else "train"))
+            )
 
         else:
             df = pd.read_csv(os.path.join(base_dir, "labels.csv"))
@@ -358,7 +417,10 @@ class PerovskiteDataset3d(Dataset):
 
                 # get image data (3D)
                 video = np.load(
-                    os.path.join(base_dir, "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    os.path.join(
+                        base_dir,
+                        "{}/{}.npy".format(patch["substrateName"], patch["patch_loc"]),
+                    ),
                     mmap_mode="r",
                 )[::20]
                 videos.append(video)
@@ -367,11 +429,13 @@ class PerovskiteDataset3d(Dataset):
                 lb.append(patch[label])
 
         self.unscaled_labels = (np.array(lb)).astype(np.float32)
-        self.videos = torch.from_numpy((np.array(videos) / 2**16).astype(np.float32))
+        self.videos = torch.from_numpy((np.array(videos) / 2 ** 16).astype(np.float32))
 
         if not self.scaler:
             self.scaler = self.fit_scaler(self.unscaled_labels)
-        self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+        self.labels = self.scaler.transform(
+            self.unscaled_labels.reshape([-1, 1])
+        ).reshape(-1)
 
     def __getitem__(self, idx):
 

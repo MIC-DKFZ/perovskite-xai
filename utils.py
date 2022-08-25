@@ -93,13 +93,17 @@ def detect_misconfigurations(model_name, args):
     # data
     # assert args.data in ['CIFAR10', 'CIFAR100'], 'Only CIFAR10 and CIFAR100 datasets are supported'
     # Model
-    assert model_name in registered_models, "Specified Model {} not available. Have you registered it?".format(
-        model_name
-    )
+    assert (
+        model_name in registered_models
+    ), "Specified Model {} not available. Have you registered it?".format(model_name)
     # Training
-    assert args.optimizer in ["SGD", "Madgrad", "Adam", "AdamW", "Rmsprop"], "Optimizer {} not recognized".format(
-        args.optimizer
-    )
+    assert args.optimizer in [
+        "SGD",
+        "Madgrad",
+        "Adam",
+        "AdamW",
+        "Rmsprop",
+    ], "Optimizer {} not recognized".format(args.optimizer)
     assert args.scheduler in ["", "MultiStep", "Step", "CosineAnneal"]
     assert not (
         args.ASAM and args.SAM
@@ -107,18 +111,27 @@ def detect_misconfigurations(model_name, args):
     if args.nesterov:
         assert args.optimizer == "SGD", "Nesterov only available for SGD optimizer"
     if args.warmstart > 0:
-        assert args.scheduler == "CosineAnneal", "Warmstart only available for Cosine Annealing Scheduler"
+        assert (
+            args.scheduler == "CosineAnneal"
+        ), "Warmstart only available for Cosine Annealing Scheduler"
     if args.T_max:
         assert (
             args.scheduler == "CosineAnneal"
-        ), "T_max is a parameter of the Cosine Annealing Scheduler, but you specified {}".format(args.scheduler)
+        ), "T_max is a parameter of the Cosine Annealing Scheduler, but you specified {}".format(
+            args.scheduler
+        )
 
     if args.mixup_alpha != 0.2:
-        assert args.mixup, "Mixup has to be True for specifying the mixup alpha parameter"
+        assert (
+            args.mixup
+        ), "Mixup has to be True for specifying the mixup alpha parameter"
     # Model specific settings
     if args.bottleneck:
         assert (
-            "ResNet" in model_name or "Pyramid" in model_name and "18" not in model_name and "34" not in model_name
+            "ResNet" in model_name
+            or "Pyramid" in model_name
+            and "18" not in model_name
+            and "34" not in model_name
         ), "Bottleneck not available for {}".format(model_name)
     if args.zero_init_residual or args.se or args.shakedrop:
         assert (

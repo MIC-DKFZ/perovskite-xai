@@ -9,3 +9,5 @@ __pycache__
 .git
 .ipynb_checkpoints
 preprocessed
+.vscode
+*.npz
