@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 import numpy as np
 import os
 import sys
@@ -10,11 +9,10 @@ sys.path.append(os.getcwd())
 
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-from data.perovskite_dataset import PerovskiteDataset1d
+from data.perovskite_dataset import PerovskiteDataset2d_time
 
-from models.resnet import ResNet152, ResNet, BasicBlock, Bottleneck
-from models.slowfast import SlowFast
-from data.augmentations.perov_1d import normalize
+from models.resnet import ResNet, BasicBlock
+from data.augmentations.perov_2d import normalize as normalize_2d
 from base_model import seed_worker
 from os.path import join
 from xai.utils.eval_methods import VisionSensitivityN, VisionInsertionDeletion
@@ -25,7 +23,7 @@ def perturb_fn(inputs):
     return noise, inputs - noise
 
 
-#### 1D ####
+#### 2D ####
 
 ## Import Model ##
 
@@ -33,14 +31,14 @@ data_dir = "/home/l727n/Projects/Applied Projects/ml_perovskite/preprocessed"
 checkpoint_dir = "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints"
 
 path_to_checkpoint = join(
-    checkpoint_dir, "1D-epoch=999-val_MAE=0.000-train_MAE=0.490.ckpt"
+    checkpoint_dir, "2D_time-epoch=999-val_MAE=0.000-train_MAE=0.725.ckpt"
 )
 
 hypparams = {
-    "dataset": "Perov_1d",
-    "dims": 1,
+    "dataset": "Perov_time_2d",
+    "dims": 2,
     "bottleneck": False,
-    "name": "ResNet152",
+    "name": "ResNet18",
     "data_dir": data_dir,
     "no_border": False,
     "resnet_dropout": 0.0,
@@ -49,7 +47,7 @@ hypparams = {
 model = ResNet.load_from_checkpoint(
     path_to_checkpoint,
     block=BasicBlock,
-    num_blocks=[4, 13, 55, 4],
+    num_blocks=[2, 2, 2, 2],
     num_classes=1,
     hypparams=hypparams,
 )
@@ -57,19 +55,19 @@ model = ResNet.load_from_checkpoint(
 print("Loaded")
 model.eval()
 
-dataset = PerovskiteDataset1d(
+dataset = PerovskiteDataset2d_time(
     data_dir,
-    transform=normalize(model.train_mean, model.train_std),
+    transform=normalize_2d(model.train_mean, model.train_std),
     scaler=model.scaler,
     no_border=False,
 )
 
-batch_size = 500
+batch_size = 2
 
 loader = DataLoader(
     dataset,
     batch_size=batch_size,
-    shuffle=True,
+    shuffle=False,
     num_workers=8,
     pin_memory=True,
     worker_init_fn=seed_worker,
@@ -85,7 +83,7 @@ log_n_ticks = 0.4
 n_list = np.logspace(0, log_n_max, int(log_n_max / log_n_ticks), base=10.0, dtype=int)
 sigma = 5.0
 pixel_batch_size = 20
-kernel_size = 3
+kernel_size = 5
 
 # Select batch
 x_batch = next(iter(loader))
@@ -96,7 +94,7 @@ with torch.no_grad():
 x_batch = x_batch[0]
 
 ## Exp. Gradients ##
-print("\n 1D Exp. Gradients")
+print("\n 2D Exp. Gradients")
 from captum.attr import GradientShap
 from captum.metrics import sensitivity_max, infidelity
 
@@ -116,7 +114,7 @@ corr_all = []
 ins_abc = []
 del_abc = []
 
-h, w = x_batch[0].shape
+c, h, w = x_batch[0].shape
 
 for n in tqdm(range(x_batch.shape[0])):
     attr = method.attribute(
@@ -161,7 +159,7 @@ infid_eg_1D = np.array(infid_sum)  # .mean()
 sens_eg_1D = np.array(sens_sum)  # .mean()
 
 ## Integrated Gradients ##
-print("\n 1D Integrated Gradients")
+print("\n 2D Integrated Gradients")
 from captum.attr import IntegratedGradients
 
 method = IntegratedGradients(model)
@@ -180,7 +178,6 @@ corr_all = []
 ins_abc = []
 del_abc = []
 
-h, w = x_batch[0].shape
 
 for n in tqdm(range(x_batch.shape[0])):
     attr, delta = method.attribute(
@@ -226,7 +223,7 @@ infid_ig_1D = np.array(infid_sum)  # .mean()
 sens_ig_1D = np.array(sens_sum)  # .mean()
 
 ## Guided Backprop ##
-print("\n 1D Guided Backprop")
+print("\n 2D Guided Backprop")
 from captum.attr import GuidedBackprop
 
 method = GuidedBackprop(model)
@@ -245,7 +242,6 @@ corr_all = []
 ins_abc = []
 del_abc = []
 
-h, w = x_batch[0].shape
 
 for n in tqdm(range(x_batch.shape[0])):
     attr = method.attribute(x_batch[n].unsqueeze(0), target=0)
@@ -280,7 +276,7 @@ infid_gbc_1D = np.array(infid_sum)  # .mean()
 sens_gbc_1D = np.array(sens_sum)  # .mean()
 
 ## Guided GradCam ##
-print("\n 1D Guided GradCam")
+print("\n 2D Guided GradCam")
 from captum.attr import GuidedGradCam
 
 method = GuidedGradCam(model, model.conv1)
@@ -299,7 +295,6 @@ corr_all = []
 ins_abc = []
 del_abc = []
 
-h, w = x_batch[0].shape
 
 for n in tqdm(range(x_batch.shape[0])):
     attr = method.attribute(x_batch[n].unsqueeze(0), target=0)
@@ -336,7 +331,7 @@ sens_ggc_1D = np.array(sens_sum)  # .mean()
 
 ## Export data ##
 
-print("\n Export data and plots")
+print("\n Export data")
 
 sensN_1D = np.stack([sensN_eg_1D, sensN_ig_1D, sensN_gbc_1D, sensN_ggc_1D])
 ins_abc_1D = np.stack([ins_abc_eg_1D, ins_abc_ig_1D, ins_abc_gbc_1D, ins_abc_ggc_1D])
@@ -346,7 +341,7 @@ infid_1D = np.stack([infid_eg_1D, infid_ig_1D, infid_gbc_1D, infid_ggc_1D])
 sens_1D = np.stack([sens_eg_1D, sens_ig_1D, sens_gbc_1D, sens_ggc_1D])
 
 np.savez(
-    "./xai/results/eval_1D_results.npz",
+    "./xai/results/eval_2D_time_results.npz",
     sensN_1D,
     ins_abc_1D,
     del_abc_1D,
