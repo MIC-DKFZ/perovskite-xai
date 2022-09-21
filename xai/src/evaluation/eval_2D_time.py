@@ -62,7 +62,7 @@ dataset = PerovskiteDataset2d_time(
     no_border=False,
 )
 
-batch_size = 2
+batch_size = 500
 
 loader = DataLoader(
     dataset,
