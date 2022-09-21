@@ -60,7 +60,7 @@ dataset = PerovskiteDataset3d(
     no_border=False,
 )
 
-batch_size = 2
+batch_size = 50
 
 loader = DataLoader(
     dataset,
