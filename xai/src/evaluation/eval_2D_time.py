@@ -101,7 +101,7 @@ from captum.metrics import sensitivity_max, infidelity
 method = GradientShap(model)
 indel = VisionInsertionDeletion(
     model,
-    baseline=x_batch.mean(0),
+    baseline=x_batch.mean(0) * 0,
     pixel_batch_size=pixel_batch_size,
     kernel_size=kernel_size,
     sigma=sigma,
@@ -118,7 +118,7 @@ c, h, w = x_batch[0].shape
 
 for n in tqdm(range(x_batch.shape[0])):
     attr = method.attribute(
-        x_batch[n].unsqueeze(0) * 0,
+        x_batch[n].unsqueeze(0),
         n_samples=80,
         stdevs=0.001,
         baselines=x_batch,
