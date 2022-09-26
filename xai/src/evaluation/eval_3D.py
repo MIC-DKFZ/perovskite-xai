@@ -29,8 +29,8 @@ def perturb_fn(inputs):
 
 ## Import Model ##
 
-data_dir = "/home/l727n/Projects/Applied Projects/ml_perovskite/preprocessed"
-checkpoint_dir = "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints"
+data_dir = "/dkfz/cluster/gpu/data/OE0612/l727n/data/perovskite/preprocessed"
+checkpoint_dir = "/dkfz/cluster/gpu/checkpoints/OE0612/l727n/perovskite/"
 
 path_to_checkpoint = join(
     checkpoint_dir, "3D-epoch=999-val_MAE=0.000-train_MAE=0.360.ckpt"
