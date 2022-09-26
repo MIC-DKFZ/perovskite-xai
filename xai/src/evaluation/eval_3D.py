@@ -277,7 +277,7 @@ sens_gbc_1D = np.array(sens_sum)  # .mean()
 print("\n 3D Guided GradCam")
 from captum.attr import GuidedGradCam
 
-method = GuidedGradCam(model, model.conv1)
+method = GuidedGradCam(model, model.model.blocks[0].multipathway_blocks[0].conv)
 indel = VisionInsertionDeletion(
     model,
     baseline=x_batch.mean(0) * 0,

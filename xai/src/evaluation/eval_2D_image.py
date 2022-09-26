@@ -102,7 +102,7 @@ from captum.metrics import sensitivity_max, infidelity
 method = GradientShap(model)
 indel = VisionInsertionDeletion(
     model,
-    baseline=x_batch.mean(0),
+    baseline=x_batch.mean(0) * 0,
     pixel_batch_size=pixel_batch_size,
     kernel_size=kernel_size,
     sigma=sigma,
@@ -342,7 +342,7 @@ infid_1D = np.stack([infid_eg_1D, infid_ig_1D, infid_gbc_1D, infid_ggc_1D])
 sens_1D = np.stack([sens_eg_1D, sens_ig_1D, sens_gbc_1D, sens_ggc_1D])
 
 np.savez(
-    "./xai/results/eval_2D_image_results.npz",
+    "./xai/results/eval_2D_image_zero_results.npz",
     sensN_1D,
     ins_abc_1D,
     del_abc_1D,

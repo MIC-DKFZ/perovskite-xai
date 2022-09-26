@@ -118,7 +118,7 @@ c, h, w = x_batch[0].shape
 
 for n in tqdm(range(x_batch.shape[0])):
     attr = method.attribute(
-        x_batch[n].unsqueeze(0),
+        x_batch[n].unsqueeze(0) * 0,
         n_samples=80,
         stdevs=0.001,
         baselines=x_batch,
@@ -341,7 +341,7 @@ infid_1D = np.stack([infid_eg_1D, infid_ig_1D, infid_gbc_1D, infid_ggc_1D])
 sens_1D = np.stack([sens_eg_1D, sens_ig_1D, sens_gbc_1D, sens_ggc_1D])
 
 np.savez(
-    "./xai/results/eval_2D_time_results.npz",
+    "./xai/results/eval_2D_time_zero_results.npz",
     sensN_1D,
     ins_abc_1D,
     del_abc_1D,
