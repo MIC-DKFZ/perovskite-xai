@@ -108,6 +108,11 @@ class BaseModel(pl.LightningModule):
 
         # Data and Dataloading
 
+        self.target = hypparams["target"] if "target" in hypparams else None
+        self.norm_target = (
+            hypparams["norm_target"] if "norm_target" in hypparams else None
+        )
+
         self.use_all_folds = (
             hypparams["use_all_folds"] if "use_all_folds" in hypparams else None
         )
@@ -132,18 +137,22 @@ class BaseModel(pl.LightningModule):
                 transform=None,
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 no_border=self.no_border,
             ).get_stats()
 
-            self.scaler = PerovskiteDataset1d(
-                data_dir=self.data_dir,
-                transform=None,
-                fold=self.fold,
-                split="train",
-                label="PCE_mean",
-                no_border=self.no_border,
-            ).get_fitted_scaler()
+            self.scaler = (
+                PerovskiteDataset1d(
+                    data_dir=self.data_dir,
+                    transform=None,
+                    fold=self.fold,
+                    split="train",
+                    label=self.target,
+                    no_border=self.no_border,
+                ).get_fitted_scaler()
+                if self.norm_target
+                else None
+            )
 
         elif self.dims == 2 and self.dataset == "Perov_2d":
             self.train_mean, self.train_std = PerovskiteDataset2d(
@@ -151,18 +160,22 @@ class BaseModel(pl.LightningModule):
                 transform=None,
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 no_border=self.no_border,
             ).get_stats()
 
-            self.scaler = PerovskiteDataset2d(
-                data_dir=self.data_dir,
-                transform=None,
-                fold=self.fold,
-                split="train",
-                label="PCE_mean",
-                no_border=self.no_border,
-            ).get_fitted_scaler()
+            self.scaler = (
+                PerovskiteDataset2d(
+                    data_dir=self.data_dir,
+                    transform=None,
+                    fold=self.fold,
+                    split="train",
+                    label=self.target,
+                    no_border=self.no_border,
+                ).get_fitted_scaler()
+                if self.norm_target
+                else None
+            )
 
         elif self.dims == 2 and self.dataset == "Perov_time_2d":
             self.train_mean, self.train_std = PerovskiteDataset2d_time(
@@ -170,18 +183,22 @@ class BaseModel(pl.LightningModule):
                 transform=None,
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 no_border=self.no_border,
             ).get_stats()
 
-            self.scaler = PerovskiteDataset2d_time(
-                data_dir=self.data_dir,
-                transform=None,
-                fold=self.fold,
-                split="train",
-                label="PCE_mean",
-                no_border=self.no_border,
-            ).get_fitted_scaler()
+            self.scaler = (
+                PerovskiteDataset2d_time(
+                    data_dir=self.data_dir,
+                    transform=None,
+                    fold=self.fold,
+                    split="train",
+                    label=self.target,
+                    no_border=self.no_border,
+                ).get_fitted_scaler()
+                if self.norm_target
+                else None
+            )
 
         elif self.dims == 3:
             self.train_mean, self.train_std = PerovskiteDataset3d(
@@ -189,18 +206,22 @@ class BaseModel(pl.LightningModule):
                 transform=None,
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 no_border=self.no_border,
             ).get_stats()
 
-            self.scaler = PerovskiteDataset3d(
-                data_dir=self.data_dir,
-                transform=None,
-                fold=self.fold,
-                split="train",
-                label="PCE_mean",
-                no_border=self.no_border,
-            ).get_fitted_scaler()
+            self.scaler = (
+                PerovskiteDataset3d(
+                    data_dir=self.data_dir,
+                    transform=None,
+                    fold=self.fold,
+                    split="train",
+                    label=self.target,
+                    no_border=self.no_border,
+                ).get_fitted_scaler()
+                if self.norm_target
+                else None
+            )
 
         # self.train_mean, self.train_std = torch.tensor([0.5, 0.5, 0.5, 0.5]), torch.tensor([0.25, 0.25, 0.25, 0.25])
         print(self.train_mean, self.train_std)
@@ -253,27 +274,33 @@ class BaseModel(pl.LightningModule):
         self.log('train_acc', self.train_acc, on_step=False, on_epoch=True, prog_bar=True)"""
 
         with torch.no_grad():
-            # self.train_MSE(y_hat * 20, y * 20)
-            self.train_MSE(
-                torch.from_numpy(
-                    self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
-                ),
-                torch.from_numpy(
-                    self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
-                ),
-            )
+            # MSE
+            if self.scaler:
+                self.train_MSE(
+                    torch.from_numpy(
+                        self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+                    ),
+                    torch.from_numpy(
+                        self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+                    ),
+                )
+            else:
+                self.train_MSE(y_hat, y)
             self.log(
                 "train_MSE", self.train_MSE, on_step=False, on_epoch=True, prog_bar=True
             )
-            # self.train_MAE(y_hat * 20, y * 20)
-            self.train_MAE(
-                torch.from_numpy(
-                    self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
-                ),
-                torch.from_numpy(
-                    self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
-                ),
-            )
+            # MAE
+            if self.scaler:
+                self.train_MAE(
+                    torch.from_numpy(
+                        self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+                    ),
+                    torch.from_numpy(
+                        self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+                    ),
+                )
+            else:
+                self.train_MAE(y_hat, y)
             self.log(
                 "train_MAE",
                 (self.train_MAE),
@@ -318,21 +345,32 @@ class BaseModel(pl.LightningModule):
         self.log('val_recall', self.val_recall, on_step=False, on_epoch=True, prog_bar=True)
         self.val_acc(y_hat_norm, y)
         self.log('val_acc', self.val_acc, on_step=False, on_epoch=True, prog_bar=True)"""
-        # self.val_MSE(y_hat * 20, y * 20)
-        self.val_MSE(
-            torch.from_numpy(
-                self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
-            ),
-            torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))),
-        )
+        if self.scaler:
+            # MSE
+            self.val_MSE(
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+                ),
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+                ),
+            )
+        else:
+            self.val_MSE(y_hat, y)
         self.log("val_MSE", self.val_MSE, on_step=False, on_epoch=True, prog_bar=True)
-        # self.val_MAE(y_hat * 20, y * 20)
-        self.val_MAE(
-            torch.from_numpy(
-                self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
-            ),
-            torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))),
-        )
+
+        if self.scaler:
+            # MAE
+            self.val_MAE(
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+                ),
+                torch.from_numpy(
+                    self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+                ),
+            )
+        else:
+            self.val_MAE(y_hat, y)
         self.log(
             "val_MAE",
             (self.val_MAE),
@@ -345,11 +383,20 @@ class BaseModel(pl.LightningModule):
 
         x, y = batch
 
+        if self.name == "SlowFast":
+            x = [
+                x[:, :, ::6],
+                x,
+            ]  # first: slow (less frames) second: fast (more frames)
         y_hat = self(x)
         y_hat = y_hat.view(-1)
 
-        return torch.from_numpy(
-            self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+        return (
+            torch.from_numpy(
+                self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+            )
+            if self.scaler
+            else y_hat
         )
 
     def test_step(self, batch, batch_idx):
@@ -366,8 +413,15 @@ class BaseModel(pl.LightningModule):
         # only if num_classes==1
         y_hat = y_hat.view(-1)
 
-        denormalized_y = self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
-        denormalized_y_hat = self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+        if self.scaler:
+
+            denormalized_y = self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
+            denormalized_y_hat = self.scaler.inverse_transform(
+                y_hat.cpu().reshape([-1, 1])
+            )
+        else:
+            denormalized_y = y.cpu()
+            denormalized_y_hat = y_hat.cpu()
 
         self.val_preds.append(zip(denormalized_y, denormalized_y_hat))
         # print("in func", denormalized_y_hat)
@@ -564,10 +618,11 @@ class BaseModel(pl.LightningModule):
                 transform=normalize(self.train_mean, self.train_std),
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 val=False,
                 scaler=self.scaler,
                 no_border=self.no_border,
+                return_unscaled=not self.norm_target,
             )
 
         elif self.dataset == "Perov_2d":
@@ -602,10 +657,11 @@ class BaseModel(pl.LightningModule):
                 transform=transform_train,
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 val=False,
                 scaler=self.scaler,
                 no_border=self.no_border,
+                return_unscaled=not self.norm_target,
             )
 
         elif self.dataset == "Perov_time_2d":
@@ -642,10 +698,11 @@ class BaseModel(pl.LightningModule):
                 transform=transform_train,
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 val=False,
                 scaler=self.scaler,
                 no_border=self.no_border,
+                return_unscaled=not self.norm_target,
             )
 
         elif self.dataset == "Perov_3d":
@@ -664,10 +721,11 @@ class BaseModel(pl.LightningModule):
                 transform=transform_train,
                 fold=self.fold,
                 split="train",
-                label="PCE_mean",
+                label=self.target,
                 val=False,
                 scaler=self.scaler,
                 no_border=self.no_border,
+                return_unscaled=not self.norm_target,
             )
 
         trainloader = DataLoader(
@@ -698,10 +756,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             elif self.dataset == "Perov_2d":
@@ -713,10 +772,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             elif self.dataset == "Perov_time_2d":
@@ -728,10 +788,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             elif self.dataset == "Perov_3d":
@@ -743,10 +804,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             valloader = DataLoader(
@@ -777,10 +839,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             elif self.dataset == "Perov_2d":
@@ -792,10 +855,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             elif self.dataset == "Perov_time_2d":
@@ -807,10 +871,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             elif self.dataset == "Perov_3d":
@@ -822,10 +887,11 @@ class BaseModel(pl.LightningModule):
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,
                     split="train",
-                    label="PCE_mean",
+                    label=self.target,
                     val=True,
                     scaler=self.scaler,
                     no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
                 )
 
             valloader = DataLoader(
