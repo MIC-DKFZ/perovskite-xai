@@ -383,11 +383,6 @@ class BaseModel(pl.LightningModule):
 
         x, y = batch
 
-        if self.name == "SlowFast":
-            x = [
-                x[:, :, ::6],
-                x,
-            ]  # first: slow (less frames) second: fast (more frames)
         y_hat = self(x)
         y_hat = y_hat.view(-1)
 
