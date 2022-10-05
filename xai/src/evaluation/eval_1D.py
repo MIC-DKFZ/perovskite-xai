@@ -136,7 +136,7 @@ from captum.metrics import sensitivity_max, infidelity
 method = GradientShap(model)
 indel = VisionInsertionDeletion(
     model,
-    baseline=x_batch.mean(0),
+    baseline=x_batch.mean(0) * 0,
     pixel_batch_size=args.pixel_batch_size,
     kernel_size=args.kernel_size,
     sigma=args.sigma,
