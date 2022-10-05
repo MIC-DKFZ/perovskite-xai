@@ -64,7 +64,7 @@ if args.target == "pce":
 elif args.target == "mth":
     path_to_checkpoint = join(
         args.checkpoint_dir,
-        "mT_2Dtime_RN18_full-epoch=999-val_MAE=0.000-train_MAE=41.243.ckpt",
+        "mT_2Dtime_RN18_full3-epoch=999-val_MAE=0.000-train_MAE=36.879.ckpt",
     )
 else:
     raise Exception("Unknown target: " + args.target)
