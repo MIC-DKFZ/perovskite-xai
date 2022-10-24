@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 import numpy as np
@@ -245,8 +246,10 @@ if __name__ == "__main__":
             mlflow.log_params(params_to_log)
             trainer.fit(model)
             trainer.test(model)
-            # print(list(*model.val_preds))
-            validation_preds.append(list(*model.val_preds))
+            try:
+                validation_preds.append(torch.hstack(model.val_preds))
+            except:
+                validation_preds.append(model.val_preds)
 
         if not args.use_all_folds:
             train_MSE = mlflow.get_run(run.info.run_id).data.metrics["train_MSE"]
@@ -257,7 +260,9 @@ if __name__ == "__main__":
                 (run.info.run_id, run.info.artifact_uri, (train_MSE, val_MSE, train_MAE, val_MAE))
             )
 
-    val_gt, val_pred = np.hsplit(np.array(list(itertools.chain(*validation_preds))).squeeze(), 2)
+    # val_gt, val_pred = np.hsplit(np.array(list(itertools.chain(*validation_preds))).squeeze(), 2)
+    stacked_preds = torch.hstack(validation_preds)
+    val_gt, val_pred = stacked_preds.numpy()
 
     scatterplot_dir = os.path.join(selected_exp_dir, "scatterplots/{}".format(str(params["experiment_id"])))
     os.makedirs(scatterplot_dir, exist_ok=True)
@@ -270,6 +275,7 @@ if __name__ == "__main__":
     save_path = os.path.join(scatterplot_dir, "scatterplot.png")
     plt.tight_layout()
     plt.savefig(save_path)
+    plt.close()
 
     if not args.use_all_folds:
         ids, artifact_uris, scores = zip(*validation_metrics)

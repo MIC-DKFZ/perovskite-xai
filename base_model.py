@@ -21,6 +21,7 @@ from data.perovskite_dataset import (
     PerovskiteDataset2d,
     PerovskiteDataset3d,
     PerovskiteDataset2d_time,
+    PerovskiteDatasetSpectrogram,
 )
 from torchmetrics import F1Score as F1, Precision, Recall, Accuracy, MeanAbsoluteError, MeanSquaredError
 
@@ -152,6 +153,29 @@ class BaseModel(pl.LightningModule):
 
             self.scaler = (
                 PerovskiteDataset2d_time(
+                    data_dir=self.data_dir,
+                    transform=None,
+                    fold=self.fold,
+                    split="train",
+                    label=self.target,
+                    no_border=self.no_border,
+                ).get_fitted_scaler()
+                if self.norm_target
+                else None
+            )
+
+        elif self.dims == 2 and self.dataset == "Perov_spec_2d":
+            self.train_mean, self.train_std = PerovskiteDatasetSpectrogram(
+                data_dir=self.data_dir,
+                transform=None,
+                fold=self.fold,
+                split="train",
+                label=self.target,
+                no_border=self.no_border,
+            ).get_stats()
+
+            self.scaler = (
+                PerovskiteDatasetSpectrogram(
                     data_dir=self.data_dir,
                     transform=None,
                     fold=self.fold,
@@ -348,10 +372,8 @@ class BaseModel(pl.LightningModule):
             denormalized_y = y.cpu()
             denormalized_y_hat = y_hat.cpu()
 
-        self.val_preds.append(zip(denormalized_y, denormalized_y_hat))
-        # print("in func", denormalized_y_hat)
-
-        # return denormalized_y, denormalized_y_hat
+        # self.val_preds.append(zip(denormalized_y, denormalized_y_hat))
+        self.val_preds.append(torch.vstack((denormalized_y, denormalized_y_hat)))
 
     def on_train_start(self):
 
@@ -589,6 +611,37 @@ class BaseModel(pl.LightningModule):
                 return_unscaled=not self.norm_target,
             )
 
+        elif self.dataset == "Perov_spec_2d":
+
+            from data.augmentations.perov_2d import normalize, baseline_2d, aug1_2d, aug2_2d, aug3_2d, aug4_2d, aug5_2d
+
+            if self.aug == "norm":
+                transform_train = normalize(self.train_mean, self.train_std)
+            elif self.aug == "baseline":
+                transform_train = baseline_2d(self.train_mean, self.train_std, time=True, flip=False)
+            elif self.aug == "aug1":
+                transform_train = aug1_2d(self.train_mean, self.train_std, time=True, flip=False)
+            elif self.aug == "aug2":
+                transform_train = aug2_2d(self.train_mean, self.train_std, time=True, flip=False)
+            elif self.aug == "aug3":
+                transform_train = aug3_2d(self.train_mean, self.train_std, time=True, flip=False)
+            elif self.aug == "aug4":
+                transform_train = aug4_2d(self.train_mean, self.train_std, time=True, flip=False)
+            elif self.aug == "aug5":
+                transform_train = aug5_2d(self.train_mean, self.train_std, time=True, flip=False)
+
+            trainset = PerovskiteDatasetSpectrogram(
+                data_dir=self.data_dir,
+                transform=transform_train,
+                fold=self.fold,
+                split="train",
+                label=self.target,
+                val=False,
+                scaler=self.scaler,
+                no_border=self.no_border,
+                return_unscaled=not self.norm_target,
+            )
+
         elif self.dataset == "Perov_3d":
 
             from data.augmentations.perov_3d import normalize, aug1_3d, aug2_3d
@@ -677,6 +730,22 @@ class BaseModel(pl.LightningModule):
                     return_unscaled=not self.norm_target,
                 )
 
+            elif self.dataset == "Perov_spec_2d":
+
+                from data.augmentations.perov_2d import normalize
+
+                valset = PerovskiteDatasetSpectrogram(
+                    data_dir=self.data_dir,
+                    transform=normalize(self.train_mean, self.train_std),
+                    fold=self.fold,
+                    split="train",
+                    label=self.target,
+                    val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
+                )
+
             elif self.dataset == "Perov_3d":
 
                 from data.augmentations.perov_3d import normalize
@@ -749,6 +818,22 @@ class BaseModel(pl.LightningModule):
                 from data.augmentations.perov_2d import normalize
 
                 valset = PerovskiteDataset2d_time(
+                    data_dir=self.data_dir,
+                    transform=normalize(self.train_mean, self.train_std),
+                    fold=self.fold,
+                    split="train",
+                    label=self.target,
+                    val=True,
+                    scaler=self.scaler,
+                    no_border=self.no_border,
+                    return_unscaled=not self.norm_target,
+                )
+
+            elif self.dataset == "Perov_spec_2d":
+
+                from data.augmentations.perov_2d import normalize
+
+                valset = PerovskiteDatasetSpectrogram(
                     data_dir=self.data_dir,
                     transform=normalize(self.train_mean, self.train_std),
                     fold=self.fold,

@@ -475,3 +475,118 @@ class PerovskiteDataset3d(Dataset):
         sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
 
         return sampler
+
+
+class PerovskiteDatasetSpectrogram(Dataset):
+    def __init__(
+        self,
+        data_dir,
+        transform,
+        fold=None,
+        split="train",
+        val=False,
+        label="PCE_mean",
+        scaler=None,
+        no_border=False,
+        return_unscaled=False,
+    ):
+
+        self.transform = transform
+        self.split = split
+        self.val = val
+        self.scaler = scaler
+
+        if val:
+            assert split == "train"
+            assert isinstance(fold, int)
+
+        if split == "test":
+            # TODO
+            raise NotImplementedError
+
+        # train or test
+        base_dir = os.path.join(data_dir, split)
+
+        if isinstance(fold, int):
+
+            # fold
+            fold_dir = os.path.join(base_dir, "cv_splits_5fold/fold{}".format(fold))
+            df = pd.read_csv(os.path.join(fold_dir, "{}.csv".format("val" if val else "train")))
+
+        else:
+            df = pd.read_csv(os.path.join(base_dir, "labels.csv"))
+
+        videos = []
+        lb = []
+        for i, patch in df.iterrows():
+
+            if (patch["patch_loc"] < 70 or not no_border) and not pd.isna(patch[label]):
+
+                # get image data (2D: for each video select the frame that has the highest PL)
+                video = np.load(
+                    os.path.join(base_dir, "{}/spec_{}.npy".format(patch["substrateName"], patch["patch_loc"])),
+                    mmap_mode="r",
+                )
+                videos.append(video.transpose(1, 2, 0))
+
+                # get label
+                lb.append(patch[label])
+
+        self.unscaled_labels = (np.array(lb)).astype(np.float32)
+        self.videos = (np.array(videos) / 2**16).astype(np.float32)
+
+        if not return_unscaled:
+            if not self.scaler:
+                self.scaler = self.fit_scaler(self.unscaled_labels)
+
+            self.labels = self.scaler.transform(self.unscaled_labels.reshape([-1, 1])).reshape(-1)
+
+        else:
+            self.labels = self.unscaled_labels
+
+    def __getitem__(self, idx):
+
+        x = self.videos[idx]
+        y = self.labels[idx]
+
+        if self.transform:
+            x = self.transform(image=x)["image"]
+
+        return x, y
+
+    def __len__(self):
+
+        return len(self.labels)
+
+    def get_stats(self):
+
+        assert self.split == "train"
+        assert not self.val
+
+        return self.videos.mean(axis=(0, 1, 2)), self.videos.std(axis=(0, 1, 2))
+
+    def fit_scaler(self, data):
+
+        scaler = StandardScaler()
+
+        return scaler.fit(data.reshape([-1, 1]))
+
+    def get_fitted_scaler(self):
+
+        assert self.split == "train"
+        assert not self.val
+
+        return self.scaler
+
+    def get_weighted_random_sampler(self):
+
+        # WeightedRandomSampler: https://pytorch.org/docs/stable/data.html#torch.utils.data.WeightedRandomSampler
+        _, bin_edges = np.histogram(self.unscaled_labels, bins=5)
+        final_bins = np.digitize(self.unscaled_labels, bin_edges)
+        label_weights = 1 - final_bins / (final_bins.max() + 1)
+
+        samples_weight = torch.from_numpy(label_weights)
+        samples_weight = samples_weight.double()
+        sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+
+        return sampler

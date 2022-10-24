@@ -11,11 +11,11 @@ def normalize(mean, std):
     return t
 
 
-def baseline_2d(mean, std, time=False):
+def baseline_2d(mean, std, time=False, flip=True):
 
     t = A.Compose(
         [
-            A.Flip() if not time else A.VerticalFlip(),
+            A.Flip(p=0.5 if flip else 0.0) if not time else A.VerticalFlip(p=0.5 if flip else 0.0),
             A.GaussianBlur(),
             A.Normalize(mean=mean.reshape(1, 1, -1), std=std.reshape(1, 1, -1), max_pixel_value=1.0),
             ToTensorV2(),
@@ -25,11 +25,11 @@ def baseline_2d(mean, std, time=False):
     return t
 
 
-def aug1_2d(mean, std, time=False):
+def aug1_2d(mean, std, time=False, flip=True):
 
     t = A.Compose(
         [
-            A.Flip() if not time else A.VerticalFlip(),
+            A.Flip(p=0.5 if flip else 0.0) if not time else A.VerticalFlip(p=0.5 if flip else 0.0),
             A.OneOf(
                 [
                     A.MotionBlur(p=0.2),
@@ -55,11 +55,11 @@ def aug1_2d(mean, std, time=False):
     return t
 
 
-def aug2_2d(mean, std, time=False):
+def aug2_2d(mean, std, time=False, flip=True):
 
     t = A.Compose(
         [
-            A.Flip() if not time else A.VerticalFlip(),
+            A.Flip(p=0.5 if flip else 0.0) if not time else A.VerticalFlip(p=0.5 if flip else 0.0),
             A.OneOf(
                 [
                     A.MotionBlur(p=0.2),
@@ -81,11 +81,11 @@ def aug2_2d(mean, std, time=False):
     return t
 
 
-def aug3_2d(mean, std, time=False):
+def aug3_2d(mean, std, time=False, flip=True):
 
     t = A.Compose(
         [
-            A.Flip() if not time else A.VerticalFlip(),
+            A.Flip(p=0.5 if flip else 0.0) if not time else A.VerticalFlip(p=0.5 if flip else 0.0),
             A.OneOf(
                 [
                     A.MotionBlur(p=0.6),
@@ -112,11 +112,11 @@ def aug3_2d(mean, std, time=False):
     return t
 
 
-def aug4_2d(mean, std, time=False):
+def aug4_2d(mean, std, time=False, flip=True):
 
     t = A.Compose(
         [
-            A.Flip() if not time else A.VerticalFlip(),
+            A.Flip(p=0.5 if flip else 0.0) if not time else A.VerticalFlip(p=0.5 if flip else 0.0),
             A.OneOf(
                 [
                     A.MotionBlur(p=0.6),
@@ -143,11 +143,11 @@ def aug4_2d(mean, std, time=False):
     return t
 
 
-def aug5_2d(mean, std, time=False):
+def aug5_2d(mean, std, time=False, flip=True):
 
     t = A.Compose(
         [
-            A.Flip() if not time else A.VerticalFlip(),
+            A.Flip(p=0.5 if flip else 0.0) if not time else A.VerticalFlip(p=0.5 if flip else 0.0),
             A.OneOf(
                 [
                     A.MotionBlur(p=0.6),
