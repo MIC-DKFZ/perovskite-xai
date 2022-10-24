@@ -366,8 +366,10 @@ class BaseModel(pl.LightningModule):
 
         if self.scaler:
 
-            denormalized_y = self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))
-            denormalized_y_hat = self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))
+            denormalized_y = torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1]))).reshape(-1)
+            denormalized_y_hat = torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))).reshape(
+                -1
+            )
         else:
             denormalized_y = y.cpu()
             denormalized_y_hat = y_hat.cpu()
