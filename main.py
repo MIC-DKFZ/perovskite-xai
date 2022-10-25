@@ -260,24 +260,24 @@ if __name__ == "__main__":
                 (run.info.run_id, run.info.artifact_uri, (train_MSE, val_MSE, train_MAE, val_MAE))
             )
 
-    # val_gt, val_pred = np.hsplit(np.array(list(itertools.chain(*validation_preds))).squeeze(), 2)
-    stacked_preds = torch.hstack(validation_preds)
-    val_gt, val_pred = stacked_preds.numpy()
-
-    scatterplot_dir = os.path.join(selected_exp_dir, "scatterplots/{}".format(str(params["experiment_id"])))
-    os.makedirs(scatterplot_dir, exist_ok=True)
-
-    plt.figure(figsize=(10, 7))
-    plt.scatter(val_gt, val_pred)
-    plt.xlabel("Ground Truth")
-    plt.ylabel("Predicted")
-
-    save_path = os.path.join(scatterplot_dir, "scatterplot.png")
-    plt.tight_layout()
-    plt.savefig(save_path)
-    plt.close()
-
     if not args.use_all_folds:
+        # val_gt, val_pred = np.hsplit(np.array(list(itertools.chain(*validation_preds))).squeeze(), 2)
+        stacked_preds = torch.hstack(validation_preds)
+        val_gt, val_pred = stacked_preds.numpy()
+
+        scatterplot_dir = os.path.join(selected_exp_dir, "scatterplots/{}".format(str(params["experiment_id"])))
+        os.makedirs(scatterplot_dir, exist_ok=True)
+
+        plt.figure(figsize=(10, 7))
+        plt.scatter(val_gt, val_pred)
+        plt.xlabel("Ground Truth")
+        plt.ylabel("Predicted")
+
+        save_path = os.path.join(scatterplot_dir, "scatterplot.png")
+        plt.tight_layout()
+        plt.savefig(save_path)
+        plt.close()
+
         ids, artifact_uris, scores = zip(*validation_metrics)
         avg_train_MSE, avg_val_MSE, avg_train_MAE, avg_val_MAE = np.mean(scores, axis=0)
         print(avg_val_MSE, avg_val_MAE)
@@ -301,6 +301,6 @@ if __name__ == "__main__":
             with open(meta_file, "w") as f:
                 yaml.dump(meta_info, f)
 
-    # remove local scatterplot_dir
-    print(scatterplot_dir)
-    shutil.rmtree(scatterplot_dir)
+        # remove local scatterplot_dir
+        print(scatterplot_dir)
+        shutil.rmtree(scatterplot_dir)
