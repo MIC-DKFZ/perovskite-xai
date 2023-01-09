@@ -32,7 +32,7 @@ parser.add_argument(
     default="/dkfz/cluster/gpu/checkpoints/OE0612/l727n/perovskite/",
     type=str,
 )
-parser.add_argument("--batch_size", default=500, type=int)
+parser.add_argument("--batch_size", default=100, type=int)
 
 parser.add_argument("--std_noise", default=0.01, type=float)
 parser.add_argument("--log_n_max", default=2.7, type=float)
