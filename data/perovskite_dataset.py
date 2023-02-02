@@ -31,8 +31,7 @@ class PerovskiteDataset1d(Dataset):
             assert isinstance(fold, int)
 
         if split == "test":
-            # TODO
-            raise NotImplementedError
+            assert not fold
 
         # train or test
         base_dir = os.path.join(data_dir, split)
@@ -149,8 +148,7 @@ class PerovskiteDataset2d(Dataset):
             assert isinstance(fold, int)
 
         if split == "test":
-            # TODO
-            raise NotImplementedError
+            assert not fold
 
         # train or test
         base_dir = os.path.join(data_dir, split)
@@ -266,8 +264,7 @@ class PerovskiteDataset2d_time(Dataset):
             assert isinstance(fold, int)
 
         if split == "test":
-            # TODO
-            raise NotImplementedError
+            assert not fold
 
         # train or test
         base_dir = os.path.join(data_dir, split)
@@ -386,8 +383,7 @@ class PerovskiteDataset3d(Dataset):
             assert isinstance(fold, int)
 
         if split == "test":
-            # TODO
-            raise NotImplementedError
+            assert not fold
 
         # train or test
         base_dir = os.path.join(data_dir, split)
@@ -501,8 +497,7 @@ class PerovskiteDatasetSpectrogram(Dataset):
             assert isinstance(fold, int)
 
         if split == "test":
-            # TODO
-            raise NotImplementedError
+            assert not fold
 
         # train or test
         base_dir = os.path.join(data_dir, split)

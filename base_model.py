@@ -211,7 +211,7 @@ class BaseModel(pl.LightningModule):
             )
 
         # self.train_mean, self.train_std = torch.tensor([0.5, 0.5, 0.5, 0.5]), torch.tensor([0.25, 0.25, 0.25, 0.25])
-        print(self.train_mean, self.train_std)
+        # print(self.train_mean, self.train_std)
 
         os.makedirs(self.data_dir, exist_ok=True)
         self.download = False if any(os.scandir(self.data_dir)) else True
@@ -346,12 +346,21 @@ class BaseModel(pl.LightningModule):
 
         x, y = batch
 
+        x = x.to("cuda")
+
         if self.name == "SlowFast":
             x = [x[:, :, ::6], x]  # first: slow (less frames) second: fast (more frames)
         y_hat = self(x)
         y_hat = y_hat.view(-1)
 
-        return torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1]))) if self.scaler else y_hat
+        return (
+            torch.from_numpy(self.scaler.inverse_transform(y_hat.cpu().reshape([-1, 1])))
+            if self.scaler
+            else y_hat.reshape([-1, 1]).cpu(),
+            torch.from_numpy(self.scaler.inverse_transform(y.cpu().reshape([-1, 1])))
+            if self.scaler
+            else y.reshape([-1, 1]).cpu(),
+        )
 
     def test_step(self, batch, batch_idx):
 
