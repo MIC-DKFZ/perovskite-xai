@@ -136,6 +136,7 @@ class PerovskiteDataset2d(Dataset):
         scaler=None,
         no_border=False,
         return_unscaled=False,
+        ex_situ=False,
     ):
 
         self.transform = transform
@@ -168,7 +169,10 @@ class PerovskiteDataset2d(Dataset):
 
             if (patch["patch_loc"] < 70 or not no_border) and not pd.isna(patch[label]):
 
-                maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
+                if not ex_situ:
+                    maxPL = np.fromstring(patch["maxPL"].replace("[", "").replace("]", ""), dtype=int, sep=" ")[0]
+                else:
+                    maxPL = 718  # last timestep
 
                 # get image data (2D: for each video select the frame that has the highest PL)
                 video = np.load(

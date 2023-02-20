@@ -86,6 +86,7 @@ class BaseModel(pl.LightningModule):
         self.use_all_folds = hypparams["use_all_folds"] if "use_all_folds" in hypparams else None
 
         self.dataset = hypparams["dataset"] if "dataset" in hypparams else None
+        self.ex_situ_img = hypparams["ex_situ_img"]
         self.num_workers = hypparams["num_workers"] if "num_workers" in hypparams else None
         self.fold = hypparams["fold"] if "fold" in hypparams else None
         self.weighted_sampler = hypparams["weighted_sampler"] if "weighted_sampler" in hypparams else None
@@ -126,6 +127,7 @@ class BaseModel(pl.LightningModule):
                 split="train",
                 label=self.target,
                 no_border=self.no_border,
+                ex_situ=self.ex_situ_img,
             ).get_stats()
 
             self.scaler = (
@@ -136,6 +138,7 @@ class BaseModel(pl.LightningModule):
                     split="train",
                     label=self.target,
                     no_border=self.no_border,
+                    ex_situ=self.ex_situ_img,
                 ).get_fitted_scaler()
                 if self.norm_target
                 else None
@@ -589,6 +592,7 @@ class BaseModel(pl.LightningModule):
                 scaler=self.scaler,
                 no_border=self.no_border,
                 return_unscaled=not self.norm_target,
+                ex_situ=self.ex_situ_img,
             )
 
         elif self.dataset == "Perov_time_2d":
@@ -723,6 +727,7 @@ class BaseModel(pl.LightningModule):
                     scaler=self.scaler,
                     no_border=self.no_border,
                     return_unscaled=not self.norm_target,
+                    ex_situ=self.ex_situ_img,
                 )
 
             elif self.dataset == "Perov_time_2d":
@@ -822,6 +827,7 @@ class BaseModel(pl.LightningModule):
                     scaler=self.scaler,
                     no_border=self.no_border,
                     return_unscaled=not self.norm_target,
+                    ex_situ=self.ex_situ_img,
                 )
 
             elif self.dataset == "Perov_time_2d":

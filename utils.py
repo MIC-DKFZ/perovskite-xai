@@ -128,6 +128,8 @@ def detect_misconfigurations(model_name, args):
         assert (
             "ResNet" in model_name or "WRN" in model_name or "Pyramid" in model_name
         ), "specified regularization only for ResNet-like models"
+    if args.ex_situ_img:
+        assert args.data == "Perov_2d"
 
 
 def get_params(selected_data_dir, model_name, args, seed):
@@ -169,6 +171,7 @@ def get_params(selected_data_dir, model_name, args, seed):
         "weighted_sampler": args.weighted_sampler,
         "target": args.target,
         "norm_target": args.norm_target,
+        "ex_situ_img": args.ex_situ_img,
     }
 
     return params
@@ -213,6 +216,7 @@ def get_params_to_log(params, model_name):
         "weighted_sampler": params["weighted_sampler"],
         "target": params["target"],
         "target_normalized": params["norm_target"],
+        "ex_situ_img": params["ex_situ_img"],
     }
 
     return params_to_log
