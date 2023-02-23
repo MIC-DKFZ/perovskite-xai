@@ -23,7 +23,7 @@ from data.perovskite_dataset import (
     PerovskiteDataset2d_time,
 )
 from torchmetrics import (
-    F1Score as F1,
+    # F1Score as F1,
     Precision,
     Recall,
     Accuracy,
