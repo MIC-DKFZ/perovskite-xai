@@ -2,15 +2,24 @@ import torch
 import pytorchvideo.transforms as v_transforms
 from torchvision.transforms import Compose as torchvision_compose
 from batchgenerators.transforms.abstract_transforms import Compose, AbstractTransform
-from batchgenerators.transforms.color_transforms import NormalizeTransform, GammaTransform
+from batchgenerators.transforms.color_transforms import (
+    NormalizeTransform,
+    GammaTransform,
+)
 from batchgenerators.transforms.crop_and_pad_transforms import RandomShiftTransform
 from batchgenerators.transforms.noise_transforms import (
     BlankRectangleTransform,
     GaussianNoiseTransform,
     GaussianBlurTransform,
 )
-from batchgenerators.transforms.spatial_transforms import MirrorTransform, SpatialTransform_2
-from batchgenerators.transforms.utility_transforms import NumpyToTensor, ReshapeTransform
+from batchgenerators.transforms.spatial_transforms import (
+    MirrorTransform,
+    SpatialTransform_2,
+)
+from batchgenerators.transforms.utility_transforms import (
+    NumpyToTensor,
+    ReshapeTransform,
+)
 from PIL import Image
 import numpy as np
 
@@ -227,6 +236,8 @@ def normalize(mean, std):
 
 
 def normalize_torchvision(mean, std):
-    t = torchvision_compose([v_transforms.Permute((1, 0, 2, 3)), v_transforms.Normalize(mean, std)])
+    t = torchvision_compose(
+        [v_transforms.Permute((1, 0, 2, 3)), v_transforms.Normalize(mean, std)]
+    )
 
     return t

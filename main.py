@@ -23,9 +23,18 @@ if __name__ == "__main__":
     # Training Settings
     parser.add_argument("--epochs", type=int, help="Number of epochs", default=200)
     parser.add_argument("--batch_size", type=int, default=128)
-    parser.add_argument("--optimizer", type=str, default="SGD", help="SGD / Madgrad / Adam / AdamW / Rmsprop")
+    parser.add_argument(
+        "--optimizer",
+        type=str,
+        default="SGD",
+        help="SGD / Madgrad / Adam / AdamW / Rmsprop",
+    )
     parser.add_argument("--SAM", action="store_true", help="Enables Sharpness Aware Minimization")
-    parser.add_argument("--ASAM", action="store_true", help="Enables Adaptive Sharpness Aware Minimization")
+    parser.add_argument(
+        "--ASAM",
+        action="store_true",
+        help="Enables Adaptive Sharpness Aware Minimization",
+    )
     parser.add_argument("--lr", type=float, default=0.1)
     parser.add_argument("--nesterov", action="store_true", help="Enables Nesterov acceleration for SGD")
     parser.add_argument("--wd", type=float, help="Weight Decay", default=5e-4)
@@ -35,7 +44,10 @@ if __name__ == "__main__":
         help="If enabled weight decay is not applied to bias and batch norm parameters",
     )
     parser.add_argument(
-        "--scheduler", type=str, default="", help="MultiStep / Step / CosineAnneal - By default no scheduler is used"
+        "--scheduler",
+        type=str,
+        default="",
+        help="MultiStep / Step / CosineAnneal - By default no scheduler is used",
     )
     parser.add_argument(
         "--T_max",
@@ -64,7 +76,11 @@ if __name__ == "__main__":
     )
     parser.add_argument("--R_m", default=9, help="Randaugment Magnitude", type=int)
     parser.add_argument("--R_nb", default=2, help="Randaugment Number of layers", type=int)
-    parser.add_argument("--mixup", action="store_true", help="Enables mixing up data samples during training")
+    parser.add_argument(
+        "--mixup",
+        action="store_true",
+        help="Enables mixing up data samples during training",
+    )
     parser.add_argument("--mixup_alpha", default=0.2, type=float)
     parser.add_argument(
         "--label_smoothing",
@@ -84,9 +100,15 @@ if __name__ == "__main__":
         type=float,
         help="Final layer dropout rate, only for Resnet-like models, default applies no dropout",
     )
-    parser.add_argument("--se", action="store_true", help="Enables Squeeze and Excitation for ResNet-like models")
     parser.add_argument(
-        "--shakedrop", action="store_true", help="Enables ShakeDrop Regularization for ResNet-like models"
+        "--se",
+        action="store_true",
+        help="Enables Squeeze and Excitation for ResNet-like models",
+    )
+    parser.add_argument(
+        "--shakedrop",
+        action="store_true",
+        help="Enables ShakeDrop Regularization for ResNet-like models",
     )
     parser.add_argument(
         "--zero_init_residual",
@@ -97,10 +119,16 @@ if __name__ == "__main__":
         ),
     )
     parser.add_argument(
-        "--bottleneck", action="store_true", help="Whether to use bottleneck building blocks for ResNet"
+        "--bottleneck",
+        action="store_true",
+        help="Whether to use bottleneck building blocks for ResNet",
     )
     # Seeding
-    parser.add_argument("--seed", default=None, help="If a seed is specified training will be deterministic and slower")
+    parser.add_argument(
+        "--seed",
+        default=None,
+        help="If a seed is specified training will be deterministic and slower",
+    )
     # Data and experiment directories
     parser.add_argument("--data", help="Name of the dataset", default="Perov_2d")
     parser.add_argument("--ex_situ_img", action="store_true")
@@ -117,7 +145,12 @@ if __name__ == "__main__":
         action="store_true",
         help="Uses Weighted Random Sampler that gives low PCE values higher chance to be seen in training",
     )
-    parser.add_argument("--num_workers", help="Number of workers for loading the data", type=int, default=8)
+    parser.add_argument(
+        "--num_workers",
+        help="Number of workers for loading the data",
+        type=int,
+        default=8,
+    )
     parser.add_argument(
         "--data_dir",
         default=os.environ["DATASET_LOCATION"]
@@ -132,7 +165,9 @@ if __name__ == "__main__":
     )
     # Checkpoint saving
     parser.add_argument(
-        "--save_model", action="store_true", help="Saves the model checkpoint after training in the exp_dir"
+        "--save_model",
+        action="store_true",
+        help="Saves the model checkpoint after training in the exp_dir",
     )
     parser.add_argument(
         "--chpt_name",
@@ -143,7 +178,9 @@ if __name__ == "__main__":
     parser.add_argument("--gpu_count", type=int, help="Nb of GPUs", default=1)
     # Verbosity
     parser.add_argument(
-        "--suppress_progress_bar", action="store_true", help="Will suppress the Lightning progress bar during training"
+        "--suppress_progress_bar",
+        action="store_true",
+        help="Will suppress the Lightning progress bar during training",
     )
 
     args = parser.parse_args()
@@ -183,7 +220,6 @@ if __name__ == "__main__":
     fold_range = range(5) if not args.use_all_folds else range(1)
 
     for fold in fold_range:
-
         if args.use_all_folds:
             fold = None
 
@@ -199,7 +235,8 @@ if __name__ == "__main__":
         # Checkpoint callback if model should be saved
         chpt_name = args.chpt_name if len(args.chpt_name) > 0 else model_name
         checkpoint_callback = ModelCheckpoint(
-            dirpath=chpt_dir, filename=chpt_name + "-{epoch}" + "-{val_MAE:.3f}" + "-{train_MAE:.3f}"
+            dirpath=chpt_dir,
+            filename=chpt_name + "-{epoch}" + "-{val_MAE:.3f}" + "-{train_MAE:.3f}",
         )
 
         # Sharpness Aware Minimization fails with 16-bit precision because

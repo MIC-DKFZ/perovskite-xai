@@ -22,11 +22,12 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
     parser.add_argument(
-        "--data_dir", default="/home/s522r/Desktop/perovskite/new_data/2021_KIT_PerovskiteDeposition/preprocessed"
+        "--data_dir",
+        default="/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/2021_KIT_PerovskiteDeposition/preprocessed",
     )
     parser.add_argument(
         "--checkpoint_dir",
-        default="/home/s522r/network_drives/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints",
+        default="/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints",
     )
     parser.add_argument("--no_border", action="store_true")
     parser.add_argument("--data", default="1D", help="1D / 2D / 2D_time / 3D")
@@ -42,7 +43,10 @@ if __name__ == "__main__":
     if data == "1D":
         if no_border:
 
-            path_to_checkpoint = join(checkpoint_dir, "1D_no_border-epoch=999-val_MAE=0.000-train_MAE=0.351.ckpt")
+            path_to_checkpoint = join(
+                checkpoint_dir,
+                "1D_no_border-epoch=999-val_MAE=0.000-train_MAE=0.351.ckpt",
+            )
 
             hypparams = {
                 "dataset": "Perov_1d",
@@ -55,7 +59,11 @@ if __name__ == "__main__":
             }
 
             model = ResNet.load_from_checkpoint(
-                path_to_checkpoint, block=BasicBlock, num_blocks=[2, 2, 2, 2], num_classes=1, hypparams=hypparams
+                path_to_checkpoint,
+                block=BasicBlock,
+                num_blocks=[2, 2, 2, 2],
+                num_classes=1,
+                hypparams=hypparams,
             )
 
             print("Loaded")
@@ -93,7 +101,9 @@ if __name__ == "__main__":
 
         else:
 
-            path_to_checkpoint = join(checkpoint_dir, "1D-epoch=999-val_MAE=0.000-train_MAE=0.490.ckpt")
+            path_to_checkpoint = join(
+                checkpoint_dir, "1D-epoch=999-val_MAE=0.000-train_MAE=0.490.ckpt"
+            )
 
             hypparams = {
                 "dataset": "Perov_1d",
@@ -106,7 +116,11 @@ if __name__ == "__main__":
             }
 
             model = ResNet.load_from_checkpoint(
-                path_to_checkpoint, block=BasicBlock, num_blocks=[4, 13, 55, 4], num_classes=1, hypparams=hypparams
+                path_to_checkpoint,
+                block=BasicBlock,
+                num_blocks=[4, 13, 55, 4],
+                num_classes=1,
+                hypparams=hypparams,
             )
 
             print("Loaded")
@@ -147,7 +161,9 @@ if __name__ == "__main__":
         if no_border:
             raise NotImplementedError
         else:
-            path_to_checkpoint = join(checkpoint_dir, "2D-epoch=999-val_MAE=0.000-train_MAE=0.289.ckpt")
+            path_to_checkpoint = join(
+                checkpoint_dir, "2D-epoch=999-val_MAE=0.000-train_MAE=0.289.ckpt"
+            )
 
             hypparams = {
                 "dataset": "Perov_2d",
@@ -160,7 +176,11 @@ if __name__ == "__main__":
             }
 
             model = ResNet.load_from_checkpoint(
-                path_to_checkpoint, block=BasicBlock, num_blocks=[2, 2, 2, 2], num_classes=1, hypparams=hypparams
+                path_to_checkpoint,
+                block=BasicBlock,
+                num_blocks=[2, 2, 2, 2],
+                num_classes=1,
+                hypparams=hypparams,
             )
 
             print("Loaded")
@@ -201,7 +221,9 @@ if __name__ == "__main__":
         if no_border:
             raise NotImplementedError
         else:
-            path_to_checkpoint = join(checkpoint_dir, "2D_time-epoch=999-val_MAE=0.000-train_MAE=0.725.ckpt")
+            path_to_checkpoint = join(
+                checkpoint_dir, "2D_time-epoch=999-val_MAE=0.000-train_MAE=0.725.ckpt"
+            )
 
             hypparams = {
                 "dataset": "Perov_time_2d",
@@ -214,7 +236,11 @@ if __name__ == "__main__":
             }
 
             model = ResNet.load_from_checkpoint(
-                path_to_checkpoint, block=BasicBlock, num_blocks=[2, 2, 2, 2], num_classes=1, hypparams=hypparams
+                path_to_checkpoint,
+                block=BasicBlock,
+                num_blocks=[2, 2, 2, 2],
+                num_classes=1,
+                hypparams=hypparams,
             )
 
             print("Loaded")
@@ -255,7 +281,9 @@ if __name__ == "__main__":
         if no_border:
             raise NotImplementedError
         else:
-            path_to_checkpoint = join(checkpoint_dir, "3D-epoch=999-val_MAE=0.000-train_MAE=0.360.ckpt")
+            path_to_checkpoint = join(
+                checkpoint_dir, "3D-epoch=999-val_MAE=0.000-train_MAE=0.360.ckpt"
+            )
 
             hypparams = {
                 "dataset": "Perov_3d",
@@ -267,7 +295,9 @@ if __name__ == "__main__":
                 "resnet_dropout": 0.0,
             }
 
-            model = SlowFast.load_from_checkpoint(path_to_checkpoint, num_classes=1, hypparams=hypparams)
+            model = SlowFast.load_from_checkpoint(
+                path_to_checkpoint, num_classes=1, hypparams=hypparams
+            )
 
             print("Loaded")
             model.eval()

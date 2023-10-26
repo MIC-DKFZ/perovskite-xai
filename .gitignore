@@ -1,5 +1,6 @@
 experiments
 checkpoints
+cav
 cluster_jobs.txt
 3d.ipynb
 baselines_backup.ipynb
@@ -8,3 +9,11 @@ aug_vis*.ipynb
 __pycache__
 .git
 .ipynb_checkpoints
+preprocessed
+.vscode
+*.npz
+xai/results/*.npz
+xai/results/*.csv
+xai/results/*.npy
+xai/images/mth/*
+xai/images/pce/*
