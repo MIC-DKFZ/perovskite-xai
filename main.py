@@ -1,20 +1,20 @@
-from argparse import ArgumentParser
-import torch
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
-import numpy as np
 import os
-import shutil
-import itertools
 import re
-import yaml
-import matplotlib.pyplot as plt
+import shutil
+from argparse import ArgumentParser
 from uuid import uuid4
-import mlflow.pytorch
-from mlflow.tracking import MlflowClient
-from base_model import TimerCallback
-from utils import detect_misconfigurations, get_model, get_params_to_log, get_params
 
+import matplotlib.pyplot as plt
+import mlflow.pytorch
+import numpy as np
+import pytorch_lightning as pl
+import torch
+import yaml
+from mlflow.tracking import MlflowClient
+from pytorch_lightning.callbacks import ModelCheckpoint
+
+from base_model import TimerCallback
+from utils import detect_misconfigurations, get_model, get_params, get_params_to_log
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
         # set MLflow experiment name
         exp_name = args.data if not args.no_border else args.data + "_noBorder"
-        exp_name = args.target + "_" + exp_name + "_ex_situ" if args.ex_situ_img else ""
+        exp_name = args.target + "_" + exp_name + ("_ex_situ" if args.ex_situ_img else "")
         mlflow.set_experiment(exp_name)  # creates exp if it does not exist yet
         run_name = f"{args.data}-{model_name}"
 
