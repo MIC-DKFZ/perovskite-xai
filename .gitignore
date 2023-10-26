@@ -12,4 +12,8 @@ __pycache__
 preprocessed
 .vscode
 *.npz
-xai/results/*
+xai/results/*.npz
+xai/results/*.csv
+xai/results/*.npy
+xai/images/mth/*
+xai/images/pce/*
