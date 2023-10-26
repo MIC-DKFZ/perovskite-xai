@@ -4,7 +4,6 @@ import torch
 from scipy.ndimage import gaussian_filter1d
 from abc import ABCMeta, abstractmethod
 from scipy.integrate import trapezoid
-from torchvision.transforms import GaussianBlur
 
 from xai.utils.pertuber import PixelPerturber
 
@@ -28,9 +27,7 @@ class VisionSensitivityN(BaseEvaluation):
         self.classifier = classifier
         self.n = n
         self.device = next(self.classifier.parameters()).device
-        self.indices, self.masks = self._generate_random_masks(
-            num_masks, input_size, device=self.device
-        )
+        self.indices, self.masks = self._generate_random_masks(num_masks, input_size, device=self.device)
 
     def evaluate(  # noqa
         self,
@@ -80,9 +77,7 @@ class VisionSensitivityN(BaseEvaluation):
         masks = []
         h, w = input_size
         for _ in range(num_masks):
-            idxs = np.unravel_index(
-                np.random.choice(h * w, self.n, replace=False), (h, w)
-            )
+            idxs = np.unravel_index(np.random.choice(h * w, self.n, replace=False), (h, w))
             indices.append(idxs)
             mask = np.zeros((h, w))
             mask[idxs] = 1
@@ -91,9 +86,7 @@ class VisionSensitivityN(BaseEvaluation):
 
 
 class VisionInsertionDeletion(BaseEvaluation):
-    def __init__(
-        self, classifier, baseline, pixel_batch_size=10, kernel_size=4, sigma=5.0
-    ):
+    def __init__(self, classifier, baseline, pixel_batch_size=10, kernel_size=4, sigma=5.0):
         self.model = classifier
         self.model.eval()
         self.pixel_batch_size = pixel_batch_size
@@ -125,16 +118,12 @@ class VisionInsertionDeletion(BaseEvaluation):
 
         # apply deletion game
         deletion_perturber = PixelPerturber(input_tensor, self.baseline)
-        deletion_scores = self._procedure_perturb(
-            deletion_perturber, num_pixels, indices, target
-        )
+        deletion_scores = self._procedure_perturb(deletion_perturber, num_pixels, indices, target)
 
         # apply insertion game
         blurred_input = torch.Tensor(gaussian_filter1d(input_tensor, self.sigma))
         insertion_perturber = PixelPerturber(blurred_input, input_tensor)
-        insertion_scores = self._procedure_perturb(
-            insertion_perturber, num_pixels, indices, target
-        )
+        insertion_scores = self._procedure_perturb(insertion_perturber, num_pixels, indices, target)
 
         # calculate ABC
         steps = len(insertion_scores)
@@ -200,7 +189,5 @@ class VisionInsertionDeletion(BaseEvaluation):
             score_after = self.model(perturbed_inputs.to(device))
             score_after = score_after.view(-1)
 
-            scores_after_perturb = np.concatenate(
-                (scores_after_perturb, score_after.detach().cpu().numpy())
-            )
+            scores_after_perturb = np.concatenate((scores_after_perturb, score_after.detach().cpu().numpy()))
         return scores_after_perturb

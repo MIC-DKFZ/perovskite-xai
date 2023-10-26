@@ -2,43 +2,54 @@ import os
 import sys
 from pathlib import Path
 import shutil
+
 os.chdir(Path(os.getcwd()).parents[2])
 sys.path.append(os.getcwd())
 
-dirpath = Path(os.getcwd()) / 'cav'
+dirpath = Path(os.getcwd()) / "cav"  # Remove cached CAV
 if dirpath.exists() and dirpath.is_dir():
     shutil.rmtree(dirpath)
 
 target = "mth"  # mth, pce
 
 import torch
-import torch.nn as nn
 import numpy as np
+import random
+import warnings
+import plotly.graph_objects as go
+import torch.utils.data as data_utils
+
 from torch.utils.data import DataLoader
-from data.perovskite_dataset import (
-    PerovskiteDataset1d,
-)
-from models.resnet import ResNet152, ResNet, BasicBlock, Bottleneck
+from torch import Tensor
+from os.path import join
+from captum.concept._utils.common import concepts_to_str
+from captum.concept import Concept, TCAV, Classifier
+from statsmodels.stats.proportion import proportions_ztest
+from plotly.subplots import make_subplots
+from pandas import Series
+from scipy.signal import resample
+from sklearn import linear_model
+from typing import Any, Dict, List, Tuple
+
+from data.perovskite_dataset import PerovskiteDataset1d
+from models.resnet import ResNet152, ResNet, BasicBlock
 from data.augmentations.perov_1d import normalize
 from base_model import seed_worker
-from os.path import join
-import warnings
-warnings.filterwarnings("ignore") 
 
-data_dir = "/home/l727n/Projects/Applied Projects/ml_perovskite/preprocessed"
+warnings.filterwarnings("ignore")
+
+data_dir = os.getcwd() + "/preprocessed"
 
 if target == "pce":
-    checkpoint_dir = "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints"
-
-    path_to_checkpoint = join(
-        checkpoint_dir, "1D-epoch=999-val_MAE=0.000-train_MAE=0.490.ckpt"
+    checkpoint_dir = (
+        "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints"
     )
+
+    path_to_checkpoint = join(checkpoint_dir, "1D-epoch=999-val_MAE=0.000-train_MAE=0.490.ckpt")
 else:
     checkpoint_dir = "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/mT_checkpoints/checkpoints"
 
-    path_to_checkpoint = join(
-        checkpoint_dir, "mT_1D_RN152_full-epoch=999-val_MAE=0.000-train_MAE=40.332.ckpt"
-    )
+    path_to_checkpoint = join(checkpoint_dir, "mT_1D_RN152_full-epoch=999-val_MAE=0.000-train_MAE=40.332.ckpt")
 
 #### 1D Model
 
@@ -73,9 +84,9 @@ test_set = PerovskiteDataset1d(
     no_border=False,
     return_unscaled=False if target == "pce" else True,
     label="PCE_mean" if target == "pce" else "meanThickness",
-    fold=None, 
-    split='test',
-    val=False 
+    fold=None,
+    split="test",
+    val=False,
 )
 
 train_set = PerovskiteDataset1d(
@@ -133,13 +144,8 @@ x_batch_high = (
 
 n_samples = [len(x_batch_low), len(x_batch_high)]
 
-### Generate Concepts
 
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from pandas import Series
-
-
+### Generate Concepts ###
 def format_title(title, subtitle=None, font_size=14, subtitle_font_size=14):
     title = f'<span style="font-size: {font_size}px;"><b>{title}</b></span>'
     if not subtitle:
@@ -197,8 +203,6 @@ n_data = len(x)
 n_rnd = 100
 
 ## Early Peak
-from scipy.signal import resample
-
 y_early = []
 
 for i in range(4):
@@ -226,9 +230,8 @@ for i in range(4):
         )
 
 y_early = torch.tensor(np.asarray(y_early).transpose((1, 0, 2)))
-## Late Peak
-from scipy.signal import resample
 
+## Late Peak
 y_late = []
 
 for i in range(4):
@@ -258,16 +261,12 @@ for i in range(4):
 y_late = torch.tensor(np.asarray(y_late).transpose((1, 0, 2)))
 
 ## Early Peak High
-from scipy.signal import resample
-
 y_high_peak = []
 
 for i in range(4):
     x_pos = np.random.randint(2, 6, size=n_rnd)
     peak_loc = val_max_early[:, i].quantile(0.85)
-    peak = np.random.normal(
-        loc=peak_loc, scale=0.5 * val_max_early[:, i].std(), size=n_rnd
-    )
+    peak = np.random.normal(loc=peak_loc, scale=0.5 * val_max_early[:, i].std(), size=n_rnd)
 
     y = np.zeros((n_rnd, 20))
     y[np.arange(0, 100), x_pos] = peak
@@ -290,16 +289,12 @@ for i in range(4):
 y_high_peak = torch.tensor(np.asarray(y_high_peak).transpose((1, 0, 2)))
 
 ## Early Peak Low
-from scipy.signal import resample
-
 y_low_peak = []
 
 for i in range(4):
     x_pos = np.random.randint(2, 6, size=n_rnd)
     peak_loc = val_max_early[:, i].quantile(0.15)
-    peak = np.random.normal(
-        loc=peak_loc, scale=0.5 * val_max_early[:, i].std(), size=n_rnd
-    )
+    peak = np.random.normal(loc=peak_loc, scale=0.5 * val_max_early[:, i].std(), size=n_rnd)
 
     y = np.zeros((n_rnd, 20))
     y[np.arange(0, 100), x_pos] = peak
@@ -322,24 +317,21 @@ for i in range(4):
 
 y_low_peak = torch.tensor(np.asarray(y_low_peak).transpose((1, 0, 2)))
 
-# Quadratic
+## Quadratic Decay
 end_pos = 500
-from pandas import Series
 
-y_quadratic = x_batch[0:100,:].detach().numpy()
-start_val, start_pos = x_batch[0:100,:, 0:300].max(2)
+y_quadratic = x_batch[0:100, :].detach().numpy()
+start_val, start_pos = x_batch[0:100, :, 0:300].max(2)
 
-start_pos= start_pos.detach().numpy()
+start_pos = start_pos.detach().numpy()
 
-for j in [0, 1,2, 3]:
-    start = start_pos[:,j] + 30
-    end = end_pos +np.random.randint(-40, -20, size = 100) 
+for j in [0, 1, 2, 3]:
+    start = start_pos[:, j] + 30
+    end = end_pos + np.random.randint(-40, -20, size=100)
 
     for i in range(100):
         y_quadratic[i, j, start[i] : end[i]] = np.nan
-        y_quadratic[i, j, :] = np.array(
-            Series(y_quadratic[i, j, :]).interpolate(method="quadratic")
-        )
+        y_quadratic[i, j, :] = np.array(Series(y_quadratic[i, j, :]).interpolate(method="quadratic"))
 
     for val in y_quadratic[:, j, :].squeeze():
         fig.add_trace(
@@ -356,19 +348,17 @@ for j in [0, 1,2, 3]:
 
 y_quadratic = torch.tensor(np.asarray(y_quadratic))
 
-# Linear
-y_linear = x_batch[0:100,:].detach().numpy()
+## Linear Decay
+y_linear = x_batch[0:100, :].detach().numpy()
 
 
 for j in [0, 1, 2, 3]:
-    start = start_pos[:,j] + 30
-    end = end_pos +np.random.randint(-40, -20, size = 100) 
+    start = start_pos[:, j] + 30
+    end = end_pos + np.random.randint(-40, -20, size=100)
 
     for i in range(100):
         y_linear[i, j, start[i] : end[i]] = np.nan
-        y_linear[i, j, :] = np.array(
-            Series(y_linear[i, j, :]).interpolate(method="linear")
-        )
+        y_linear[i, j, :] = np.array(Series(y_linear[i, j, :]).interpolate(method="linear"))
 
     for val in y_linear[:, j, :].squeeze():
         fig.add_trace(
@@ -385,50 +375,37 @@ for j in [0, 1, 2, 3]:
 
 y_linear = torch.tensor(np.asarray(y_linear))
 
-import torch.utils.data as data_utils
-from captum.concept import Concept, TCAV
+
+### TCAV Datasets ###
 
 
 def collate_fn(batch):
     batch = torch.cat([sample[0].unsqueeze(0) for sample in batch], dim=0)
     return batch.float()
 
+
 y_early_train = data_utils.TensorDataset(y_early)
-y_early_loader = data_utils.DataLoader(
-    y_early_train, batch_size=60, shuffle=True, collate_fn=collate_fn
-)
+y_early_loader = data_utils.DataLoader(y_early_train, batch_size=60, shuffle=True, collate_fn=collate_fn)
 
 y_late_train = data_utils.TensorDataset(y_late)
-y_late_loader = data_utils.DataLoader(
-    y_late_train, batch_size=60, shuffle=True, collate_fn=collate_fn
-)
+y_late_loader = data_utils.DataLoader(y_late_train, batch_size=60, shuffle=True, collate_fn=collate_fn)
 
 y_high_peak_train = data_utils.TensorDataset(y_high_peak)
-y_high_peak_loader = data_utils.DataLoader(
-    y_high_peak_train, batch_size=60, shuffle=True, collate_fn=collate_fn
-)
+y_high_peak_loader = data_utils.DataLoader(y_high_peak_train, batch_size=60, shuffle=True, collate_fn=collate_fn)
 
 y_low_peak_train = data_utils.TensorDataset(y_low_peak)
-y_low_peak_loader = data_utils.DataLoader(
-    y_low_peak_train, batch_size=60, shuffle=True, collate_fn=collate_fn
-)
+y_low_peak_loader = data_utils.DataLoader(y_low_peak_train, batch_size=60, shuffle=True, collate_fn=collate_fn)
 
 
 y_quadratic_train = data_utils.TensorDataset(y_quadratic)
-y_quadratic_loader = data_utils.DataLoader(
-    y_quadratic_train, batch_size=60, shuffle=True, collate_fn=collate_fn
-)
+y_quadratic_loader = data_utils.DataLoader(y_quadratic_train, batch_size=60, shuffle=True, collate_fn=collate_fn)
 
 y_linear_train = data_utils.TensorDataset(y_linear)
-y_linear_loader = data_utils.DataLoader(
-    y_linear_train, batch_size=60, shuffle=True, collate_fn=collate_fn
-)
+y_linear_loader = data_utils.DataLoader(y_linear_train, batch_size=60, shuffle=True, collate_fn=collate_fn)
 
 
 y_random_train = data_utils.TensorDataset(x_batch)
-y_random_loader = data_utils.DataLoader(
-    y_random_train, batch_size=60, shuffle=True, collate_fn=collate_fn
-)
+y_random_loader = data_utils.DataLoader(y_random_train, batch_size=60, shuffle=True, collate_fn=collate_fn)
 
 concept_random = Concept(0, "random", y_random_loader)
 concept_random_2 = Concept(1, "random_2", y_random_loader)
@@ -450,17 +427,9 @@ layers = [
     "layer4.3.conv1",
 ]
 
-from sklearn import linear_model
-from sklearn.model_selection import train_test_split
-from captum.concept import Classifier
-import random
-from typing import Any, Dict, List, Tuple, Union
-
-import torch
-from torch import Tensor
-from torch.utils.data import DataLoader, TensorDataset
-
+### Define Linear Classifier for Concept Seperation and CAV ###
 seed = 42
+
 
 def _train_test_split(
     x_list: Tensor, y_list: Tensor, test_split: float = 0.33
@@ -480,10 +449,15 @@ def _train_test_split(
         torch.stack(y_test),
     )
 
+
 class MyClassifier(Classifier):
     def __init__(self):
-        self.lm = linear_model.SGDClassifier(alpha=0.02, max_iter=100000, # pce 0.02 50.000 1e-7 # Different HPs & CAVs due to different Models used
-                                            tol=1e-8, random_state= seed) # mth 0.02 1e-8 100.000
+        self.lm = linear_model.SGDClassifier(
+            alpha=0.02,
+            max_iter=100000,  # pce 0.02 50.000 1e-7 # Different HPs & CAVs due to different Models used
+            tol=1e-8,
+            random_state=seed,
+        )  # mth 0.02 1e-8 100.000
 
         self.count = 0
         self.accs = []
@@ -498,25 +472,22 @@ class MyClassifier(Classifier):
             inputs.append(input)
             labels.append(label)
 
-        x_train, x_test, y_train, y_test = _train_test_split(
-            torch.cat(inputs), torch.cat(labels), test_split=0.33
-        )
+        x_train, x_test, y_train, y_test = _train_test_split(torch.cat(inputs), torch.cat(labels), test_split=0.33)
         self.lm.fit(x_train.detach().numpy(), y_train.detach().numpy())
 
-        self.acc = self.lm.score(x_test.detach().numpy(),y_test)
+        self.acc = self.lm.score(x_test.detach().numpy(), y_test)
 
         self.accs.append(self.acc)
 
-        print("Test ACC: ", np.round(self.acc,4), " / n_train = ", y_train.shape[0], " / iter = ", self.count)
+        print("Test ACC: ", np.round(self.acc, 4), " / n_train = ", y_train.shape[0], " / iter = ", self.count)
 
         if len(self.accs) == 8:
-            print("\nAvg. ACC: ", np.round(np.mean(self.accs),4), "\n")
+            print("\nAvg. ACC: ", np.round(np.mean(self.accs), 4), "\n")
             self.accs = []
 
-        return {'accs': self.acc}
+        return {"accs": self.acc}
 
     def weights(self):
-
         if len(self.lm.coef_) == 1:
             # if there are two concepts, there is only one label.
             # We split it in two.
@@ -527,7 +498,12 @@ class MyClassifier(Classifier):
     def classes(self):
         return self.lm.classes_
 
-experiments = [[concept_late, concept_early], [concept_high, concept_low], [concept_linear,concept_quadratic]#, [concept_random, concept_random_2]
+
+### Define Experiments and learn CAV ###
+experiments = [
+    [concept_late, concept_early],
+    [concept_high, concept_low],
+    [concept_linear, concept_quadratic],  # , [concept_random, concept_random_2]
 ]
 
 mytcav = TCAV(model=model, layers=layers, classifier=MyClassifier())
@@ -536,9 +512,7 @@ scores_high = mytcav.interpret(x_batch_high, experiments)
 
 scores_low = mytcav.interpret(x_batch_low, experiments)
 
-### Plot TCAV results
-from captum.concept._utils.common import concepts_to_str
-from statsmodels.stats.proportion import proportions_ztest
+### Plot TCAV results ###
 
 idx = 1
 loop = 0
@@ -549,12 +523,8 @@ for score in (scores_high, scores_low):
         concepts = experiments[idx_es]
         concepts_key = concepts_to_str(concepts)
 
-        val_c1 = [
-            scores["sign_count"][0] for layer, scores in score[concepts_key].items()
-        ]
-        val_c2 = [
-            scores["sign_count"][1] for layer, scores in score[concepts_key].items()
-        ]
+        val_c1 = [scores["sign_count"][0] for layer, scores in score[concepts_key].items()]
+        val_c2 = [scores["sign_count"][1] for layer, scores in score[concepts_key].items()]
 
         val_c1_prob = np.round(np.multiply(val_c1, n_samples[idx - 2]))
 
@@ -562,9 +532,7 @@ for score in (scores_high, scores_low):
         for i in range(len(val_c1)):
             prop_ztest.append(
                 proportions_ztest(
-                    count=np.array([val_c1_prob, n_samples[idx - 2] - val_c1_prob])[
-                        :, i
-                    ],
+                    count=np.array([val_c1_prob, n_samples[idx - 2] - val_c1_prob])[:, i],
                     nobs=n_samples[idx - 2],
                 )[1]
                 >= 0.05
@@ -628,7 +596,7 @@ for score in (scores_high, scores_low):
 
         loop += 1
 
-### Plot
+### Export Plot ###
 
 fig.update_yaxes(title=None, showticklabels=False, zeroline=False, col=1)
 fig.update_xaxes(title=None, showticklabels=False, zeroline=False, col=1)
@@ -644,17 +612,13 @@ fig.update_yaxes(
     showgrid=True,
     col=2,
 )
-fig.update_xaxes(
-    tickfont=dict(size=14, family="Helvetica", color="rgb(0,0,0)"), tickangle=45, col=2
-)
+fig.update_xaxes(tickfont=dict(size=14, family="Helvetica", color="rgb(0,0,0)"), tickangle=45, col=2)
 
 fig.update_xaxes(title="Tested Layers", col=2, row=5)
 fig.update_xaxes(title="Tested Layers", col=3, row=5)
 
 fig.update_yaxes(showticklabels=False, range=[0, 1.01], col=3)
-fig.update_xaxes(
-    tickfont=dict(size=14, family="Helvetica", color="rgb(0,0,0)"), tickangle=45, col=3
-)
+fig.update_xaxes(tickfont=dict(size=14, family="Helvetica", color="rgb(0,0,0)"), tickangle=45, col=3)
 
 fig.update_layout(
     legend_title="Concepts",

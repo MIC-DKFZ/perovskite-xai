@@ -7,19 +7,22 @@ from pathlib import Path
 os.chdir(Path(os.getcwd()).parents[2])
 sys.path.append(os.getcwd())
 
-from tqdm import tqdm
+import torch
+import numpy as np
+
 from torch.utils.data import DataLoader
-from data.perovskite_dataset import PerovskiteDataset3d
+from tqdm import tqdm
+from captum.attr import GradientShap, IntegratedGradients, GuidedBackprop, GuidedGradCam
+from captum.metrics import sensitivity_max, infidelity
+from os.path import join
+from pathlib import Path
 from argparse import ArgumentParser
 
-from base_model import seed_worker
-from os.path import join
-from xai.utils.eval_methods import VisionSensitivityN, VisionInsertionDeletion
+from data.perovskite_dataset import PerovskiteDataset3d
 from models.slowfast import SlowFast
 from data.augmentations.perov_3d import normalize as normalize_3d
 from base_model import seed_worker
-from os.path import join
-
+from xai.utils.eval_methods import VisionSensitivityN, VisionInsertionDeletion
 
 parser = ArgumentParser(description="Evaluation 3D")
 parser.add_argument("--target", choices=["pce", "mth"], default="pce", type=str)
@@ -45,9 +48,7 @@ parser.add_argument("--kernel_size", default=5, type=int)
 
 args = parser.parse_args()
 
-n_list = np.logspace(
-    0, args.log_n_max, int(args.log_n_max / args.log_n_ticks), base=10.0, dtype=int
-)
+n_list = np.logspace(0, args.log_n_max, int(args.log_n_max / args.log_n_ticks), base=10.0, dtype=int)
 
 
 def perturb_fn(inputs):
@@ -60,9 +61,7 @@ def perturb_fn(inputs):
 ## Import Model ##
 
 if args.target == "pce":
-    path_to_checkpoint = join(
-        args.checkpoint_dir, "3D-epoch=999-val_MAE=0.000-train_MAE=0.360.ckpt"
-    )
+    path_to_checkpoint = join(args.checkpoint_dir, "3D-epoch=999-val_MAE=0.000-train_MAE=0.360.ckpt")
 elif args.target == "mth":
     path_to_checkpoint = join(
         args.checkpoint_dir,
@@ -84,9 +83,7 @@ hypparams = {
     "target": "PCE_mean" if args.target == "pce" else "meanThickness",
 }
 
-model = SlowFast.load_from_checkpoint(
-    path_to_checkpoint, num_classes=1, hypparams=hypparams
-)
+model = SlowFast.load_from_checkpoint(path_to_checkpoint, num_classes=1, hypparams=hypparams)
 
 print("Loaded")
 model.eval()
@@ -120,9 +117,6 @@ x_batch = x_batch[0]
 
 ## Exp. Gradients ##
 print("\n 3D Exp. Gradients")
-from captum.attr import GradientShap
-from captum.metrics import sensitivity_max, infidelity
-
 method = GradientShap(model)
 indel = VisionInsertionDeletion(
     model,
@@ -150,16 +144,8 @@ for n in tqdm(range(x_batch.shape[0])):
         target=0,
     )
 
-    infid_sum.append(
-        np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr))
-    )
-    sens_sum.append(
-        np.array(
-            sensitivity_max(
-                method.attribute, x_batch[n].unsqueeze(0), target=0, baselines=x_batch
-            )
-        )
-    )
+    infid_sum.append(np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr)))
+    sens_sum.append(np.array(sensitivity_max(method.attribute, x_batch[n].unsqueeze(0), target=0, baselines=x_batch)))
 
     corr_obs = []
     for i in n_list:
@@ -180,13 +166,11 @@ sensN_eg_1D = np.stack(corr_all)
 ins_abc_eg_1D = np.array(ins_abc)
 del_abc_eg_1D = np.array(del_abc)
 
-infid_eg_1D = np.array(infid_sum)  # .mean()
-sens_eg_1D = np.array(sens_sum)  # .mean()
+infid_eg_1D = np.array(infid_sum)
+sens_eg_1D = np.array(sens_sum)
 
 ## Integrated Gradients ##
 print("\n 3D Integrated Gradients")
-from captum.attr import IntegratedGradients
-
 method = IntegratedGradients(model)
 indel = VisionInsertionDeletion(
     model,
@@ -211,9 +195,7 @@ for n in tqdm(range(x_batch.shape[0])):
         return_convergence_delta=True,
     )
 
-    infid_sum.append(
-        np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr))
-    )
+    infid_sum.append(np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr)))
     sens_sum.append(
         np.array(
             sensitivity_max(
@@ -244,13 +226,11 @@ sensN_ig_1D = np.stack(corr_all)
 ins_abc_ig_1D = np.array(ins_abc)
 del_abc_ig_1D = np.array(del_abc)
 
-infid_ig_1D = np.array(infid_sum)  # .mean()
-sens_ig_1D = np.array(sens_sum)  # .mean()
+infid_ig_1D = np.array(infid_sum)
+sens_ig_1D = np.array(sens_sum)
 
 ## Guided Backprop ##
 print("\n 3D Guided Backprop")
-from captum.attr import GuidedBackprop
-
 method = GuidedBackprop(model)
 indel = VisionInsertionDeletion(
     model,
@@ -271,12 +251,8 @@ del_abc = []
 for n in tqdm(range(x_batch.shape[0])):
     attr = method.attribute(x_batch[n].unsqueeze(0), target=0)
 
-    infid_sum.append(
-        np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr))
-    )
-    sens_sum.append(
-        np.array(sensitivity_max(method.attribute, x_batch[n].unsqueeze(0)))
-    )
+    infid_sum.append(np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr)))
+    sens_sum.append(np.array(sensitivity_max(method.attribute, x_batch[n].unsqueeze(0))))
 
     corr_obs = []
     for i in n_list:
@@ -297,13 +273,11 @@ sensN_gbc_1D = np.stack(corr_all)
 ins_abc_gbc_1D = np.array(ins_abc)
 del_abc_gbc_1D = np.array(del_abc)
 
-infid_gbc_1D = np.array(infid_sum)  # .mean()
-sens_gbc_1D = np.array(sens_sum)  # .mean()
+infid_gbc_1D = np.array(infid_sum)
+sens_gbc_1D = np.array(sens_sum)
 
 ## Guided GradCam ##
 print("\n 3D Guided GradCam")
-from captum.attr import GuidedGradCam
-
 method = GuidedGradCam(model, model.model.blocks[0].multipathway_blocks[0].conv)
 indel = VisionInsertionDeletion(
     model,
@@ -324,12 +298,8 @@ del_abc = []
 for n in tqdm(range(x_batch.shape[0])):
     attr = method.attribute(x_batch[n].unsqueeze(0), target=0)
 
-    infid_sum.append(
-        np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr))
-    )
-    sens_sum.append(
-        np.array(sensitivity_max(method.attribute, x_batch[n].unsqueeze(0)))
-    )
+    infid_sum.append(np.array(infidelity(model, perturb_fn, x_batch[n].unsqueeze(0), attr)))
+    sens_sum.append(np.array(sensitivity_max(method.attribute, x_batch[n].unsqueeze(0))))
 
     corr_obs = []
     for i in n_list:
@@ -350,8 +320,8 @@ sensN_ggc_1D = np.stack(corr_all)
 ins_abc_ggc_1D = np.array(ins_abc)
 del_abc_ggc_1D = np.array(del_abc)
 
-infid_ggc_1D = np.array(infid_sum)  # .mean()
-sens_ggc_1D = np.array(sens_sum)  # .mean()
+infid_ggc_1D = np.array(infid_sum)
+sens_ggc_1D = np.array(sens_sum)
 
 
 ## Export data ##
