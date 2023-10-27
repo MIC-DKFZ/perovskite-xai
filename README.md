@@ -27,8 +27,6 @@ This study uses explainable AI to analyze photoluminescence data from perovskite
   <img src="xai/images/misc/drying.gif" width="250"> 
 </p>
 
-For detailed information about the dataset [see this publication](https://onlinelibrary.wiley.com/doi/full/10.1002/solr.202201114).
-
 ## 📝&nbsp;&nbsp;Citing this Work
 
 If you use perovskite-xai please cite our [paper]()
@@ -40,6 +38,7 @@ If you use perovskite-xai please cite our [paper]()
 ## 🧭&nbsp;&nbsp;Table of Contents
 * [Installation](#Installation)
 * [Project Structure](#project-structure)
+* [Dataset](#dataset)
 * [Reproducing the Results](#reproducing-the-results)
 * [Acknowledgements](#acknowledgements)
 
@@ -95,6 +94,13 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
         ├── util_error_vis.ipynb    - Residual and parity plots
         └── util_vis.ipynb          - Various paper figures
 ```
+## 💾&nbsp;Dataset
+<p align="center">
+  <img src="xai/images/misc/representations.png" width="550">
+  Representations
+</p>
+
+
 ## ♻️&nbsp;Reproducing the Results
 ### 🚀&nbsp;Model Training
 ### 🔎&nbsp;XAI Computation
