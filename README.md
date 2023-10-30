@@ -96,9 +96,10 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
 ```
 ## 💾&nbsp;Dataset
 <p align="center">
-  <img src="xai/images/misc/representations.png" width="550">
+  <img src="xai/images/misc/representations.png" width="550"><br>
   Representations
 </p>
+
 
 
 ## ♻️&nbsp;Reproducing the Results
@@ -122,7 +123,8 @@ ____
   <img src="https://polybox.ethz.ch/index.php/s/I6VJEPrCDW9zbEE/download" width="190"> &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://polybox.ethz.ch/index.php/s/kqDrOTTIzPFYPU7/download" width="91"> &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://img.in-part.com/thumbnail?stripmeta=true&noprofile=true&quality=95&url=https%3A%2F%2Fs3-eu-west-1.amazonaws.com%2Fassets.in-part.com%2Funiversities%2F227%2FGdzZTi4yThyBhFzWlOxu_DKFZ_Logo-3zu-Research_en_Black-Blue_sRGB.png&width=750" width="120"> &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Logo_KIT.svg" width="180">  
+  <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Logo_KIT.svg" width="180"> &nbsp;&nbsp;&nbsp;&nbsp; 
+  <img src="https://www.hzdr.de/db/PicOri?pOid=60735" width="200">
 </p>
 
-perovskite-xai is developed and maintained by the Interactive Machine Learning Group and the Applied Computer Vision Lab of [Helmholtz Imaging](https://www.helmholtz-imaging.de/) and the [DKFZ](https://www.dkfz.de/de/index.html), as well as the Light Technology Institute of the [Karlsruhe Institute of Technology](https://www.lti.kit.edu/index.php).
+perovskite-xai is developed and maintained by the Interactive Machine Learning Group and the Applied Computer Vision Lab of [Helmholtz Imaging](https://www.helmholtz-imaging.de/) and the [DKFZ](https://www.dkfz.de/de/index.html), as well as the Light Technology Institute of the [Karlsruhe Institute of Technology](https://www.lti.kit.edu/index.php) and [Helmholtz AI](https://www.helmholtz.ai/).
