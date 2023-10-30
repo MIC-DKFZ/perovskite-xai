@@ -30,6 +30,7 @@ from pandas import Series
 from scipy.signal import resample
 from sklearn import linear_model
 from typing import Any, Dict, List, Tuple
+from argparse import ArgumentParser
 
 from data.perovskite_dataset import PerovskiteDataset1d
 from models.resnet import ResNet152, ResNet, BasicBlock
@@ -38,18 +39,29 @@ from base_model import seed_worker
 
 warnings.filterwarnings("ignore")
 
+parser = ArgumentParser(description="TCAV 1D")
+parser.add_argument("--target", choices=["pce", "mth"], default="pce", type=str)
+parser.add_argument(
+    "--data_dir",
+    default="/dkfz/cluster/gpu/data/OE0612/l727n/data/perovskite/preprocessed",
+    type=str,
+)
+parser.add_argument(
+    "--checkpoint_dir",
+    default="/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints",  # "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/mT_checkpoints/checkpoints"
+    type=str,
+)
+
+
+args = parser.parse_args()
+
 data_dir = os.getcwd() + "/preprocessed"
+target = args.target
 
 if target == "pce":
-    checkpoint_dir = (
-        "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints"
-    )
-
-    path_to_checkpoint = join(checkpoint_dir, "1D-epoch=999-val_MAE=0.000-train_MAE=0.490.ckpt")
+    path_to_checkpoint = join(args.checkpoint_dir, "1D-epoch=999-val_MAE=0.000-train_MAE=0.490.ckpt")
 else:
-    checkpoint_dir = "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/mT_checkpoints/checkpoints"
-
-    path_to_checkpoint = join(checkpoint_dir, "mT_1D_RN152_full-epoch=999-val_MAE=0.000-train_MAE=40.332.ckpt")
+    path_to_checkpoint = join(args.checkpoint_dir, "mT_1D_RN152_full-epoch=999-val_MAE=0.000-train_MAE=40.332.ckpt")
 
 #### 1D Model
 

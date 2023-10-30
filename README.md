@@ -35,12 +35,16 @@ If you use perovskite-xai please cite our [paper]()
 @inproceedings{}
 ```
 
+<br>
+
 ## 🧭&nbsp;&nbsp;Table of Contents
 * [Installation](#Installation)
 * [Project Structure](#project-structure)
 * [Dataset](#dataset)
 * [Reproducing the Results](#reproducing-the-results)
 * [Acknowledgements](#acknowledgements)
+
+<br>
 
 ## ⚙️&nbsp;&nbsp;Installation
 
@@ -55,6 +59,8 @@ pip install -r requirements.txt
 ```
 
 Depending on your GPU, you need to install an appropriate version of PyTorch and torchvision separately. All scripts run also on CPU, but can take substantially longer depending on the experiment. Testing and development were done with the Pytorch version using CUDA 11.6. 
+
+<br>
 
 ## 🗃&nbsp;&nbsp;Project Structure
 
@@ -104,8 +110,42 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
 
 ## ♻️&nbsp;Reproducing the Results
 ### 🚀&nbsp;Model Training
+
+<br>
+
 ### 🔎&nbsp;XAI Computation
+**Feature Importance** <br>
+Open the folder `./xai/src/attribution`. This folder contains ipython notebooks for attribution computation and  attribution visualization. There is one notebook per modality and for local or global attribution computation (global attribution only if possible for this modality). The paths to the respective model weights and datasets have to be set. Further the respective target (`target = "mth" or "pce"`) has to be selected. Global attribution computation (*n=100*) and the rendering of the GIF for 3D Video attribution can take some time. 
+
+**Counterfactual Examples** <br>
+Open the folder `./xai/src/counterfactuals`. This folder contains ipython notebooks for CF computation and visualization. There is one notebook per modality and the paths to the respective model weights and datasets have to be set. The default selected observations to compute and visualize the CF is the one shown in the paper. Further the respective target (`target = "mth" or "pce"`) has to be selected. The computation for 3D video CFs can take substantial time. Thus the results are exportet into the `./xai/results` folder before (GIF) visualization.
+
+**TCAV** <br>
+Run the script `./xai/src/tcav/tcav_1D.py` with the `data_dir`, `checkpoint_dir` and `target` arguments submitted to the parser. For example:
+
+```bash
+python ./xai/src/tcav/tcav_1D.py --data_dir="path/to/data" --checkpoint_dir="path/to/checkpoints" --target="mth"
+```
+
+The script runs the whole TCAV pipeline:
+
+1. Concept sampling
+2. Linear model training and CAV extraction
+3. CAV testing on selected model layers
+4. Figure creation and export
+
+<br>
+
 ### 📊&nbsp;XAI Evaluation
+Open the folder `./xai/src/evaluation`. In this folder are four scripts for the evaluation of the attribution maps for each modality. Set the `data_dir` and `checkpoint_dir` among other hyperparameter in the argument parser when running the scripts. For example:
+
+```bash
+pyhton ./xai/src/evaluation/eval_1D --data_dir="path/to/data" --checkpoint_dir="path/to/checkpoints" --batch_size=500 --target="pce"
+```
+
+The script computes the attribution maps and evaluates them for `n = batch_size` observations. The results are exportet as `.npz` compressed arrays to `./xai/results/`. The results can be visualized by the `eval_plot.ipynb` notebook. Only the target (`target = "mth" or "pce"`) and modality (dim = "1D", "2D_time", "2D_image" or "3D") have to be specified. 
+
+<br>
 
 ## 📣&nbsp;&nbsp;Acknowledgements
 
