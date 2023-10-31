@@ -125,8 +125,8 @@ Click here for the exact commands to reproduce the training of each model.
 <details><summary>
 Label: PCE
 </summary>
-Point Timeseries
 
+Point Timeseries
 ```python
 python main.py ResNet152 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_1d --wd 0 --save_model --chpt_name mP_1D_RN152 --target PCE_mean --norm_target --use_all_folds
 ```
@@ -151,8 +151,8 @@ python main.py SlowFast --epochs 1000 --scheduler CosineAnneal --lr 0.001 --opti
 <details><summary>
 Label: mean Thickness
 </summary>
-Point Timeseries
 
+Point Timeseries
 ```python
 python main.py ResNet152 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_1d --wd 0 --target meanThickness --use_all_folds --save_model --chpt_name mT_1D_RN152
 ```
@@ -174,7 +174,6 @@ python main.py SlowFast --epochs 1000 --scheduler CosineAnneal --lr 0.001 --opti
 ```
 </details>
 </details>
-<br>
 
 ### 🔎&nbsp;XAI Computation
 **Feature Importance** <br>
