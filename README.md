@@ -89,13 +89,11 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
 │   ├── preprocessing.py            - Preprocessing of the original hdf5 files to numpy
 │   └── split_data.py               - Definition of the train/test split of the data
 ├── main.py                         - Entry point incl. CLI for training a model on the perovskite data 
-├── models                          -
+├── models                          
 │   ├── resnet.py                   - ResNet implmentations for 1/2/3 dimensional inputs
 │   └── slowfast.py                 - SlowFast implementation
 ├── predict_from_checkpoint.py      -
 ├── predict_testset.py              - Evaluation of the trained models on the held out testset
-├── preprocessed                    - 
-├── README.md                       -
 ├── requirements.txt                - Requirements file for running the code
 ├── utils.py                        - Multiple utility functions for model loading, logging etc.
 └── xai                             
