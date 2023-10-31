@@ -49,11 +49,11 @@ If you use perovskite-xai please cite our [paper](https://doi.org/10.1002/adma.2
 <br>
 
 ## 🧭&nbsp;&nbsp;Table of Contents
-* [Installation](#Installation)
-* [Project Structure](#project-structure)
-* [Dataset](#dataset)
-* [Reproducing the Results](#reproducing-the-results)
-* [Acknowledgements](#acknowledgements)
+* [Installation](#⚙️-installation)
+* [Project Structure](#🗃-project-structure)
+* [Dataset](#💾-dataset)
+* [Reproducing the Results](#♻️-reproducing-the-results)
+* [Acknowledgements](#📣-acknowledgements)
 
 <br>
 
