@@ -12,7 +12,7 @@
     <a href="https://pytorchlightning.ai/"><img alt="Lightning" src="https://img.shields.io/badge/-Pytorch Lightning 2.0-792EE5?logo=pytorchlightning&logoColor=white"></a>
     <a href="https://black.readthedocs.io/en/stable"><img alt="L: Hydra" src="https://img.shields.io/badge/Code Style-Black-black" ></a>
     <br>
-    <a href="https://onlinelibrary.wiley.com/journal/15214095"><strong>Read the paper »</strong></a>
+    <a href="https://doi.org/10.1002/adma.202307160"><strong>Read the paper »</strong></a>
     <br />
   </p>
 </p>
@@ -32,7 +32,18 @@ This study uses explainable AI to analyze photoluminescence data from perovskite
 If you use perovskite-xai please cite our [paper]()
 
 ```bibtex
-@inproceedings{}
+@article{https://doi.org/10.1002/adma.202307160,
+  author = {Klein, Lukas and Ziegler, Sebastian and Laufer, Felix and Debus, Charlotte and Götz, Markus and Maier-Hein, Klaus and Paetzold, Ulrich W. and Isensee, Fabian and Jäger, Paul F.},
+  title = {Discovering Process Dynamics for Scalable Perovskite Solar Cell Manufacturing with Explainable AI},
+  journal = {Advanced Materials},
+  volume = {n/a},
+  number = {n/a},
+  pages = {2307160},
+  keywords = {deep learning, energy materials science, explainable artificial intelligence (XAI), knowledge discovery, perovskite solar cells},
+  doi = {https://doi.org/10.1002/adma.202307160},
+  url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/adma.202307160},
+  eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/adma.202307160},
+}
 ```
 
 <br>
