@@ -80,18 +80,13 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
 
 ```text
 ├── base_model.py                   - Pytorch Ligthning Module defining the training pipeline              
-├── data                            - 
-│   ├── add_new_labels.py           - 
+├── data                            
 │   ├── augmentations               - Augmentation policies for the 1/2/3 dimensional representations
-│   ├── cv_splits.py                - Creating the Cross Validation splits
-│   ├── perovskite_dataset.py       - Pytorch Dataset Definition of the different representations
-│   ├── preprocessing.py            - Preprocessing of the original hdf5 files to numpy
-│   └── split_data.py               - Definition of the train/test split of the data
+│   └── perovskite_dataset.py       - Pytorch Dataset Definition of the different representations
 ├── main.py                         - Entry point incl. CLI for training a model on the perovskite data 
 ├── models                          
 │   ├── resnet.py                   - ResNet implmentations for 1/2/3 dimensional inputs
 │   └── slowfast.py                 - SlowFast implementation
-├── predict_from_checkpoint.py      -
 ├── predict_testset.py              - Evaluation of the trained models on the held out testset
 ├── requirements.txt                - Requirements file for running the code
 ├── utils.py                        - Multiple utility functions for model loading, logging etc.
@@ -115,13 +110,70 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
 </p>
 
 The dataset can be downloaded [**here**](https://doi.org/10.5281/zenodo.7503391).<br>
-After downloading, run `./data/split_data.py` to obtain the here used train/test split.
-Use `./data/preprocessing.py` to extract the data from the h5 files and save the videos as numpy arrays and the respective labels in csv files. Afterwards, you can run `./data/cv_splits.py` on the preprocessed train data if you want to use the same Cross Validation splits we used.
+Follow the instructions to preprocess the data and obtain the videos as numpy arrays with respective labels saved in csv files. The train test split as well as the Cross Validation splits are similar to what is used here. All data representations are generated on the fly within the respective dataloaders. No further preprocessing is necessary.
 
 
 ## ♻️&nbsp;Reproducing the Results
 ### 🚀&nbsp;Model Training
 
+Pretrained model weights are available here: [**Weights**](10.5281/zenodo.10058818)<br>
+
+<details><summary>
+Click here for the exact commands to reproduce the training of each model.
+</summary>
+
+<details><summary>
+Label: PCE
+</summary>
+Point Timeseries
+
+```python
+python main.py ResNet152 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_1d --wd 0 --save_model --chpt_name mP_1D_RN152 --target PCE_mean --norm_target --use_all_folds
+```
+Image in-situ
+```python
+python main.py ResNet18 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_2d --wd 0 --augmentation baseline --save_model --chpt_name mP_2D_RN18 --target PCE_mean --norm_target --use_all_folds
+```
+Image ex-situ
+```python
+python main.py ResNet18 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_2d --wd 0 --augmentation aug2 --save_model --chpt_name mP_2D_exsitu_RN18 --target PCE_mean --norm_target --use_all_folds --ex_situ_img
+```
+Vector Timeseries
+```python
+python main.py ResNet18 --epochs 1000 --scheduler CosineAnneal --lr 0.000005 --optimizer AdamW --batch_size 256 --data Perov_time_2d --wd 0 --augmentation aug3 --save_model --chpt_name mP_2D_time_RN18 --target PCE_mean --norm_target --use_all_folds
+```
+Video
+```python
+python main.py SlowFast --epochs 1000 --scheduler CosineAnneal --lr 0.001 --optimizer AdamW --batch_size 256 --data Perov_3d --wd 0 --augmentation aug1 --save_model --chpt_name mP_3D_SF --target PCE_mean --norm_target --use_all_folds
+```
+</details>
+
+<details><summary>
+Label: mean Thickness
+</summary>
+Point Timeseries
+
+```python
+python main.py ResNet152 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_1d --wd 0 --target meanThickness --use_all_folds --save_model --chpt_name mT_1D_RN152
+```
+Image in-situ
+```python
+python main.py ResNet18 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_2d --wd 0 --augmentation baseline --target meanThickness --use_all_folds --save_model --chpt_name mT_2D_RN18
+```
+Image ex-situ
+```python
+python main.py ResNet18 --epochs 1000 --scheduler CosineAnneal --lr 0.0001 --optimizer Madgrad --batch_size 256 --data Perov_2d --wd 0 --augmentation baseline --target meanThickness --use_all_folds --save_model --chpt_name mT_2D_exsitu_RN18 --ex_situ_img
+```
+Vector Timeseries
+```python
+python main.py ResNet18 --epochs 1000 --scheduler CosineAnneal --lr 0.01 --optimizer AdamW --batch_size 256 --data Perov_time_2d --wd 0 --augmentation aug3 --target meanThickness --warmstart 0 --use_all_folds --save_model --chpt_name mT_2Dtime_RN18
+```
+Video
+```python
+python main.py SlowFast --epochs 1000 --scheduler CosineAnneal --lr 0.001 --optimizer AdamW --batch_size 256 --data Perov_3d --wd 0 --augmentation aug1 --target meanThickness --use_all_folds --save_model --chpt_name mT_3D_SF
+```
+</details>
+</details>
 <br>
 
 ### 🔎&nbsp;XAI Computation
