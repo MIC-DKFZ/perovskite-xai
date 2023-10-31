@@ -29,7 +29,7 @@ This study uses explainable AI to analyze photoluminescence data from perovskite
 
 ## 📝&nbsp;&nbsp;Citing this Work
 
-If you use perovskite-xai please cite our [paper]()
+If you use perovskite-xai please cite our [paper](https://doi.org/10.1002/adma.202307160)
 
 ```bibtex
 @article{https://doi.org/10.1002/adma.202307160,
