@@ -116,7 +116,7 @@ Follow the instructions to preprocess the data and obtain the videos as numpy ar
 ## ♻️&nbsp;Reproducing the Results
 ### 🚀&nbsp;Model Training
 
-Pretrained model weights are available here: [**Weights**](10.5281/zenodo.10058818)<br>
+Pretrained model weights are available here: [**Weights**](https://doi.org/10.5281/zenodo.10058818)<br>
 
 <details><summary>
 Click here for the exact commands to reproduce the training of each model.
