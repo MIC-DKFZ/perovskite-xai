@@ -175,6 +175,7 @@ python main.py SlowFast --epochs 1000 --scheduler CosineAnneal --lr 0.001 --opti
 </details>
 </details>
 
+
 ### 🔎&nbsp;XAI Computation
 **Feature Importance** <br>
 Open the folder `./xai/src/attribution`. This folder contains ipython notebooks for attribution computation and  attribution visualization. There is one notebook per modality and for local or global attribution computation (global attribution only if possible for this modality). The paths to the respective model weights and datasets have to be set. Further the respective target (`target = "mth" or "pce"`) has to be selected. Global attribution computation (*n=100*) and the rendering of the GIF for 3D Video attribution can take some time. 
@@ -195,8 +196,6 @@ The script runs the whole TCAV pipeline:
 2. Linear model training and CAV extraction
 3. CAV testing on selected model layers
 4. Figure creation and export
-
-<br>
 
 ### 📊&nbsp;XAI Evaluation
 Open the folder `./xai/src/evaluation`. In this folder are four scripts for the evaluation of the attribution maps for each modality. Set the `data_dir` and `checkpoint_dir` among other hyperparameter in the argument parser when running the scripts. For example:
