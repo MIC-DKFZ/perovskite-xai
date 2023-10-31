@@ -64,9 +64,8 @@ perovskite-xai requires Python version 3.9 or later. All essential libraries for
 ```bash
 git clone https://github.com/IML-DKFZ/repo
 cd perovskite-xai
-conda create -n perovskite-xai python=3.9
+conda create -n perovskite-xai python=3.9 --file requirements.txt
 source activate perovskite-xai
-pip install -r requirements.txt
 ```
 
 Depending on your GPU, you need to install an appropriate version of PyTorch and torchvision separately. All scripts run also on CPU, but can take substantially longer depending on the experiment. Testing and development were done with the Pytorch version using CUDA 11.6. 
