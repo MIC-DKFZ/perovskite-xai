@@ -69,24 +69,24 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
 </p>
 
 ```text
-├── base_model.py                   -               
-├── data                            -
-│   ├── add_new_labels.py           -
-│   ├── augmentations               -
-│   ├── cv_splits.py                -
-│   ├── perovskite_dataset.py       -
-│   ├── preprocessing.py            -
-│   └── split_data.py               -
-├── main.py                         -
+├── base_model.py                   - Pytorch Ligthning Module defining the training pipeline              
+├── data                            - 
+│   ├── add_new_labels.py           - 
+│   ├── augmentations               - Augmentation policies for the 1/2/3 dimensional representations
+│   ├── cv_splits.py                - Creating the Cross Validation splits
+│   ├── perovskite_dataset.py       - Pytorch Dataset Definition of the different representations
+│   ├── preprocessing.py            - Preprocessing of the original hdf5 files to numpy
+│   └── split_data.py               - Definition of the train/test split of the data
+├── main.py                         - Entry point incl. CLI for training a model on the perovskite data 
 ├── models                          -
-│   ├── resnet.py                   -
-│   └── slowfast.py                 -
+│   ├── resnet.py                   - ResNet implmentations for 1/2/3 dimensional inputs
+│   └── slowfast.py                 - SlowFast implementation
 ├── predict_from_checkpoint.py      -
-├── predict_testset.py              -
-├── preprocessed                    -
+├── predict_testset.py              - Evaluation of the trained models on the held out testset
+├── preprocessed                    - 
 ├── README.md                       -
-├── requirements.txt                -
-├── utils.py                        -
+├── requirements.txt                - Requirements file for running the code
+├── utils.py                        - Multiple utility functions for model loading, logging etc.
 └── xai                             
     ├── images                      - Figure export location
     ├── results                     - Interim data export location
@@ -106,6 +106,9 @@ Depending on your GPU, you need to install an appropriate version of PyTorch and
   Representations
 </p>
 
+The dataset can be downloaded [**here**](https://doi.org/10.5281/zenodo.7503391).<br>
+After downloading, run `./data/split_data.py` to obtain the here used train/test split.
+Use `./data/preprocessing.py` to extract the data from the h5 files and save the videos as numpy arrays and the respective labels in csv files. Afterwards, you can run `./data/cv_splits.py` on the preprocessed train data if you want to use the same Cross Validation splits we used.
 
 
 ## ♻️&nbsp;Reproducing the Results
