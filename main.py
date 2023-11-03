@@ -155,7 +155,7 @@ if __name__ == "__main__":
         "--data_dir",
         default=os.environ["DATASET_LOCATION"]
         if "DATASET_LOCATION" in os.environ.keys()
-        else "/home/s522r/Desktop/perovskite/new_data/2021_KIT_PerovskiteDeposition/preprocessed",
+        else "/add/path/to/model/checkpoints/",
         help="Location of the dataset",
     )
     parser.add_argument(

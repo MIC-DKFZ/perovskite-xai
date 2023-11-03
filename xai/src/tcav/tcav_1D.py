@@ -43,12 +43,10 @@ parser = ArgumentParser(description="TCAV 1D")
 parser.add_argument("--target", choices=["pce", "mth"], default="pce", type=str)
 parser.add_argument(
     "--data_dir",
-    default="/dkfz/cluster/gpu/data/OE0612/l727n/data/perovskite/preprocessed",
     type=str,
 )
 parser.add_argument(
     "--checkpoint_dir",
-    default="/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/checkpoints",  # "/home/l727n/E132-Projekte/Projects/Helmholtz_Imaging_ACVL/KIT-FZJ_2021_Perovskite/data_Jan_2022/mT_checkpoints/checkpoints"
     type=str,
 )
 

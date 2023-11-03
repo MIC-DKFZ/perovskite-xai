@@ -26,8 +26,8 @@ from models.slowfast import SlowFast
 
 if __name__ == "__main__":
 
-    chkpt_dir = "/home/s522r/Desktop/perovskite/final_checkpoints"
-    data_dir = "/home/s522r/Desktop/perovskite/new_data/2021_KIT_PerovskiteDeposition/preprocessed"
+    chkpt_dir = "/add/path/to/model/checkpoints/"
+    data_dir = "/add/path/to/data"
 
 
     for target in ["PCE", "meanThickness"]:

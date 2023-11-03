@@ -28,12 +28,10 @@ parser = ArgumentParser(description="Evaluation 3D")
 parser.add_argument("--target", choices=["pce", "mth"], default="pce", type=str)
 parser.add_argument(
     "--data_dir",
-    default="/dkfz/cluster/gpu/data/OE0612/l727n/data/perovskite/preprocessed",
     type=str,
 )
 parser.add_argument(
     "--checkpoint_dir",
-    default="/dkfz/cluster/gpu/checkpoints/OE0612/l727n/perovskite/",
     type=str,
 )
 parser.add_argument("--batch_size", default=50, type=int)
